@@ -121,7 +121,7 @@ class RestHandler(RequestClient):
         return port_list
 
     @staticmethod
-    def analyse_speed(speed_value):
+    def parse_speed(speed_value):
         speed = 0
         try:
             speeds = re.findall("\\d+", speed_value)
@@ -134,6 +134,6 @@ class RestHandler(RequestClient):
             elif 'K' in speed_value:
                 speed = speed * units.k
         except Exception as err:
-            err_msg = "analyse speed error: %s" % (six.text_type(err))
+            err_msg = "parse speed error: %s" % (six.text_type(err))
             LOG.error(err_msg)
         return speed
