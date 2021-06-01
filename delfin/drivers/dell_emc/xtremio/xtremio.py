@@ -162,7 +162,7 @@ class XtremioStorDriver(driver.StorageDriver):
                     port.get('content').get('port-type', '').upper(),
                     constants.PortType.OTHER),
                 'logical_type': None,
-                'speed': RestHandler.analyse_speed(
+                'speed': RestHandler.parse_speed(
                     port.get('content').get('port-speed', '')),
                 'max_speed': None,
                 'native_parent_id': None,
