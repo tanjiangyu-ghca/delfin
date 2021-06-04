@@ -53,7 +53,7 @@ class RestHandler(RequestClient):
             else:
                 data = {'cluster-index': cluster_index}
         rest_result = self.call(url, data, method)
-        if rest_result:
+        if rest_result and isinstance(rest_result, dict):
             if drill_down_key:
                 drill_url_list = rest_result.get(drill_down_key)
                 for drill_url_node in drill_url_list:
