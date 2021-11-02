@@ -15,6 +15,7 @@ import sys
 import time
 from unittest import TestCase, mock
 
+from delfin.common import constants
 from delfin.drivers.dell_emc.vnx.vnx_block import consts
 from delfin.drivers.dell_emc.vnx.vnx_block.alert_handler import AlertHandler
 from delfin.drivers.utils.tools import Tools
@@ -354,6 +355,73 @@ I/O Module Slot :  Base Module
 I/O Module Type :  SAS
 """
 
+SP_DATAS_DETAILL = """
+
+
+Server IP Address:       8.44.162.249
+Agent Rev:           7.33.1 (0.38)
+
+
+SP Information
+--------------
+
+
+Storage Processor:                  SP B
+Storage Processor Network Name:     B-IMAGE
+Storage Processor IP Address:       8.44.162.249
+Storage Processor Subnet Mask:      255.255.192.0
+Storage Processor Gateway Address:  8.44.128.1
+Storage Processor IPv6 Mode:               Not Supported
+Management Port Settings:
+Link Status:                        Link-Up
+Current Speed:                      1000Mbps/full duplex
+Requested Speed:                    Auto
+Auto-Negotiate:                     YES
+Capable Speeds:                     1000Mbps half/full duplex
+                                    10Mbps half/full duplex
+                                    100Mbps half/full duplex
+System Fault LED:              ON
+Statistics Logging:            ON
+SP Read Cache State            Enabled
+SP Write Cache State           Enabled
+Max Requests:                  N/A
+Average Requests:              N/A
+Hard errors:                   N/A
+Total Reads:                   950598365
+Total Writes:                  492822033
+Prct Busy:                     15.1
+Prct Idle:                     84.8
+System Date:                   03/30/2021
+Day of the week:               Tuesday
+System Time:                   11:40:23
+Read_requests:                 950598365
+Write_requests:                492822033
+Blocks_read:                   310450016065
+Blocks_written:                108176671659
+Sum_queue_lengths_by_arrivals: 0
+Arrivals_to_non_zero_queue:    0
+Hw_flush_on:                   N/A
+Idle_flush_on:                 N/A
+Lw_flush_off:                  N/A
+Write_cache_flushes:           594830819
+Write_cache_blocks_flushed:    3284869527
+Internal bus 1 busy ticks:     N/A
+Internal bus 1 idle ticks:     N/A
+Internal bus 2 busy ticks:     N/A
+Internal bus 2 idle ticks:     N/A
+Internal bus 3 busy ticks:     N/A
+Internal bus 3 idle ticks:     N/A
+Internal bus 4 busy ticks:     N/A
+Internal bus 4 idle ticks:     N/A
+Internal bus 5 busy ticks:     N/A
+Internal bus 5 idle ticks:     N/A
+Controller busy ticks:         2199758
+Controller idle ticks:         12361970
+Serial Number For The SP:      CF2Z7134700040
+
+
+"""
+
 AGENT_RESULT = {
     'agent_rev': '7.33.1 (0.38)',
     'name': 'K10',
@@ -520,6 +588,22 @@ PORT_RESULT = [
         'ipv6': None,
         'ipv6_mask': None
     }]
+
+METRICS_RESULT = [
+    constants.metric_struct(name='iops', labels={
+        'storage_id': '12345',
+        'resource_type': 'controller',
+        'resource_id': '3600424',
+        'type': 'RAW',
+        'unit': 'IOPS'
+    }, values={1628472280000: 1443420398}),
+    constants.metric_struct(name='readIops', labels={
+        'storage_id': '12345',
+        'resource_type': 'controller',
+        'resource_id': '3600424',
+        'type': 'RAW',
+        'unit': 'IOPS'
+    }, values={1628472280000: 950598365})]
 
 
 def create_driver():
@@ -696,3 +780,52 @@ class TestVnxBlocktorageDriver(TestCase):
                          BUS_PORT_DATAS, BUS_PORT_STATE_DATAS])
         ports = self.driver.list_ports(context)
         self.assertDictEqual(ports[0], PORT_RESULT[0])
+
+    def test_get_perf_metrics(self):
+        driver = create_driver()
+        resource_metrics = {
+            'controller': [
+                'iops', 'readIops', 'writeIops',
+                'throughput', 'readThroughput', 'writeThroughput',
+                'responseTime'
+            ],
+            'volume': [
+                'iops', 'readIops', 'writeIops',
+                'throughput', 'readThroughput', 'writeThroughput',
+                'responseTime',
+                'cacheHitRatio', 'readCacheHitRatio', 'writeCacheHitRatio',
+                'ioSize', 'readIoSize', 'writeIoSize',
+            ],
+            'port': [
+                'iops', 'readIops', 'writeIops',
+                'throughput', 'readThroughput', 'writeThroughput',
+                'responseTime'
+            ],
+            'disk': [
+                'iops', 'readIops', 'writeIops',
+                'throughput', 'readThroughput', 'writeThroughput',
+                'responseTime'
+            ]
+        }
+        start_time = 1628472280000
+        end_time = 1628472900000
+        NaviClient.exec = mock.Mock(
+            side_effect=[DOMAIN_INFOS, SP_DATAS, SP_DATAS_DETAILL,
+                         SP_DATAS_DETAILL])
+        metrics = driver.collect_perf_metrics(context, '12345',
+                                              resource_metrics, start_time,
+                                              end_time)
+        print('test metrics==={}'.format(metrics))
+        self.assertEqual(metrics[0], METRICS_RESULT[0])
+        # self.assertEqual(metrics[14], METRICS_RESULT[1])
+        # self.assertEqual(metrics[34], METRICS_RESULT[2])
+        # self.assertEqual(metrics[48], METRICS_RESULT[3])
+
+    def test_get_capabilities(self):
+        driver = create_driver()
+        cap = driver.get_capabilities(context)
+        self.assertIsNotNone(cap.get('resource_metrics'))
+        self.assertIsNotNone(cap.get('resource_metrics').get('storagePool'))
+        self.assertIsNotNone(cap.get('resource_metrics').get('volume'))
+        self.assertIsNotNone(cap.get('resource_metrics').get('port'))
+        self.assertIsNotNone(cap.get('resource_metrics').get('disk'))
