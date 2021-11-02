@@ -535,20 +535,20 @@ class ComponentHandler(object):
                                 metric_list,
                                 labels,
                                 sp_info,
-                                consts.CONTROLLER_CAP, start_time)
+                                consts.CONTROLLER_CAP, end_time)
                             if metric_model_list:
                                 metrics.extend(metric_model_list)
         return metrics
 
     def _get_metric_model(self, metric_list, labels, metric_value, obj_cap,
-                          start_time):
+                          end_time):
         metric_model_list = []
         for metric_name in (metric_list or []):
             values = {}
             obj_labels = copy.deepcopy(labels)
             obj_labels['unit'] = obj_cap.get(metric_name).get('unit')
             if metric_value and metric_value.get(metric_name) is not None:
-                values[start_time] = metric_value.get(metric_name)
+                values[end_time] = metric_value.get(metric_name)
             if values:
                 metric_model = constants.metric_struct(name=metric_name,
                                                        labels=obj_labels,
