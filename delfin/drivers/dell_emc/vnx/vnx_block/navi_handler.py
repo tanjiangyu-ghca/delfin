@@ -147,10 +147,11 @@ class NaviHandler(object):
         return self.get_resources_info(consts.GET_IO_PORT_CONFIG_API,
                                        self.cli_io_config_to_dict)
 
-    def get_resources_info(self, sub_command, analyse_type):
+    def get_resources_info(self, sub_command, analyse_type, host_ip=None):
         # Execute commands to query data and analyze
         try:
-            command_str = self.get_cli_command_str(sub_command=sub_command)
+            command_str = self.get_cli_command_str(host_ip=host_ip,
+                                                   sub_command=sub_command)
             resource_info = self.navi_exe(command_str.split())
             return_value = None
             if resource_info:
@@ -606,3 +607,8 @@ class NaviHandler(object):
             raise e
         finally:
             self.session_lock.release()
+
+    def get_sp_detail(self, host_ip):
+        return self.get_resources_info(consts.GET_SP_DETAIL_API,
+                                       self.cli_res_to_dict,
+                                       host_ip=host_ip)

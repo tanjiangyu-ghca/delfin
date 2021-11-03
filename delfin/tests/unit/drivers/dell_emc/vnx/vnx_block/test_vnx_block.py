@@ -15,6 +15,7 @@ import sys
 import time
 from unittest import TestCase, mock
 
+from delfin.common import constants
 from delfin.drivers.dell_emc.vnx.vnx_block import consts
 from delfin.drivers.dell_emc.vnx.vnx_block.alert_handler import AlertHandler
 from delfin.drivers.utils.tools import Tools
@@ -97,6 +98,148 @@ GET_ALL_LUN_INFOS = """
         State:                      Bound
         LUN Capacity(Megabytes):    10240
         Is Thin LUN:                YES
+        LOGICAL UNIT NUMBER 84
+Name                        esx_208_raid_1
+Read Requests:              81835
+Write Requests:             41190
+Blocks read:                4811166
+Blocks written:             41230
+Read cache hits:            77420
+Read cache misses:          4415
+Prefetched blocks:          0
+Unused prefetched blocks:   0
+Write cache hits:           41190
+Forced flushes:             0
+Read Hit Ratio:             94
+Write Hit Ratio:            84
+RAID Type:                  RAID5
+RAIDGroup ID:               1
+State:                      Bound
+Stripe Crossing:            1277
+Element Size:               128
+Current owner:              SP A
+Offset:                     N/A
+Auto-trespass:              DISABLED
+Auto-assign:                DISABLED
+Write cache:                ENABLED
+Read cache:                 ENABLED
+Idle Threshold:             N/A
+Idle Delay Time:            N/A
+Write Aside Size:           0
+Default Owner:              SP A
+Rebuild Priority:           N/A
+Verify Priority:            N/A
+Prct Reads Forced Flushed:  N/A
+Prct Writes Forced Flushed: N/A
+Prct Rebuilt:               100
+Prct Bound:                 N/A
+LUN Capacity(Megabytes):    30720
+LUN Capacity(Blocks):       62914560
+UID:                        60:06:01:60:28:F0:36:00:11:EA:95:A0:B9:9F:EA:11
+LUN Capacity(Stripes):      122880
+Blocks Read SPA:            2378775  (optimal)
+Blocks Read SPB:            2432391
+Blocks Written SPA:         20714  (optimal)
+Blocks Written SPB:         20516
+Read Requests SPA:          40777  (optimal)
+Read Requests SPB:          41058
+Write Requests SPA:         20698  (optimal)
+Write Requests SPB:         20492
+LUN Busy Ticks SPA:         2511531  (optimal)
+LUN Busy Ticks SPB:         2668802
+LUN Idle Ticks SPA:         3302295952  (optimal)
+LUN Idle Ticks SPB:         3317505096
+Number of arrivals with non-zero queue:          16451
+Sum queue lengths by arrivals:                   139481
+Statistics logging start time:                   10/26/20 09:18:04
+Statistics logging current time:                 10/26/20 15:43:36
+Explicit Trespasses SPA:                 0
+Explicit Trespasses SPB:                 0
+Explicit Trespasses:                     0
+Implicit Trespasses SPA:                 2
+Implicit Trespasses SPB:                 0
+Implicit Trespasses:                     2
+Non-zero Request Count Arrivals SPA:           8135  (optimal)
+Non-zero Request Count Arrivals SPB:           8316
+Non-zero Request Count Arrivals:              16451
+Sum of Oustanding Requests SPA:    69613  (optimal)
+Sum of Oustanding Requests SPB:    69868
+Sum of Oustanding Requests:      139481
+Shrink State:                    N/A
+Write cache Re-hits:        34645
+Fast Write Count:           41190
+Is Private:                 NO
+Snapshots List:             Not Available
+MirrorView Name if any:     Not Available
+Address Offset:             813924352
+Is Meta LUN:                NO
+Is Thin LUN:                NO
+Is Pool LUN:                NO
+Is Snapshot Mount Point:    NO
+LUN Idle Ticks:             2324833752
+LUN Busy Ticks:             5180333
+LUN Offline (Cache Dirty Condition):  NO
+LU Storage Groups:          "Storage_esx_208"
+Device Map:                 Valid
+Average Read Time:            2862
+Average Write Time:            29972
+FAST Cache :             N/A
+FAST Cache Read Hits:    N/A
+FAST Cache Read Misses:  N/A
+FAST Cache Write Hits:   N/A
+FAST Cache Write Misses: N/A
+
+LOGICAL UNIT NUMBER 220
+Name                        LUN 220
+Minimum latency reads N/A
+
+RAID Type:                  N/A
+RAIDGroup ID:               N/A
+State:                      Bound
+Stripe Crossing:            0
+Element Size:               0
+Current owner:              SP B
+Offset:                     N/A
+Auto-trespass:              DISABLED
+Auto-assign:                DISABLED
+Write cache:                ENABLED
+Read cache:                 ENABLED
+Idle Threshold:             N/A
+Idle Delay Time:            N/A
+Write Aside Size:           0
+Default Owner:              SP B
+Rebuild Priority:           N/A
+Verify Priority:            N/A
+Prct Reads Forced Flushed:  N/A
+Prct Writes Forced Flushed: N/A
+Prct Rebuilt:               100
+Prct Bound:                 N/A
+LUN Capacity(Megabytes):    16384
+LUN Capacity(Blocks):       33554432
+UID:                        60:06:01:60:28:F0:36:00:53:1A:3A:E7:33:89:EA:11
+LUN Capacity(Stripes):      N/A
+Shrink State:                    N/A
+Is Private:                 NO
+Snapshots List:             Not Available
+MirrorView Name if any:     Not Available
+Address Offset:             N/A
+Is Meta LUN:                NO
+Is Thin LUN:                YES
+Is Pool LUN:                YES
+Is Snapshot Mount Point:    NO
+LUN Idle Ticks:             N/A
+LUN Busy Ticks:             N/A
+LUN Offline (Cache Dirty Condition):  N/A
+LU Storage Groups:
+Device Map:                 Valid
+Average Read Time:            0
+Average Write Time:            0
+FAST Cache :             N/A
+FAST Cache Read Hits:    N/A
+FAST Cache Read Misses:  N/A
+FAST Cache Write Hits:   N/A
+FAST Cache Write Misses: N/A
+
         """
 CER_INFOS = """
 -----------------------------
@@ -123,7 +266,17 @@ DISK_DATAS = """
         Hot Spare:               N/A
         Serial Number:           KSJEX35J
         Capacity:                549691
+        Number of Reads:         14684285
+        Number of Writes:        10844109
+        Number of Luns:          10
         Raid Group ID:           0
+        Clariion Part Number:    DG118032933
+        Request Service Time:    N/A
+        Read Requests:           14684285
+        Write Requests:          10844109
+        Kbytes Read:             550362331
+        Kbytes Written:          481080832
+        Stripe Boundary Crossing: 145505
         Drive Type:              SAS
         Current Speed: 6Gbps
         """
@@ -354,6 +507,73 @@ I/O Module Slot :  Base Module
 I/O Module Type :  SAS
 """
 
+SP_DATAS_DETAILL = """
+
+
+Server IP Address:       8.44.162.249
+Agent Rev:           7.33.1 (0.38)
+
+
+SP Information
+--------------
+
+
+Storage Processor:                  SP B
+Storage Processor Network Name:     B-IMAGE
+Storage Processor IP Address:       8.44.162.249
+Storage Processor Subnet Mask:      255.255.192.0
+Storage Processor Gateway Address:  8.44.128.1
+Storage Processor IPv6 Mode:               Not Supported
+Management Port Settings:
+Link Status:                        Link-Up
+Current Speed:                      1000Mbps/full duplex
+Requested Speed:                    Auto
+Auto-Negotiate:                     YES
+Capable Speeds:                     1000Mbps half/full duplex
+                                    10Mbps half/full duplex
+                                    100Mbps half/full duplex
+System Fault LED:              ON
+Statistics Logging:            ON
+SP Read Cache State            Enabled
+SP Write Cache State           Enabled
+Max Requests:                  N/A
+Average Requests:              N/A
+Hard errors:                   N/A
+Total Reads:                   950598365
+Total Writes:                  492822033
+Prct Busy:                     15.1
+Prct Idle:                     84.8
+System Date:                   03/30/2021
+Day of the week:               Tuesday
+System Time:                   11:40:23
+Read_requests:                 950598365
+Write_requests:                492822033
+Blocks_read:                   310450016065
+Blocks_written:                108176671659
+Sum_queue_lengths_by_arrivals: 0
+Arrivals_to_non_zero_queue:    0
+Hw_flush_on:                   N/A
+Idle_flush_on:                 N/A
+Lw_flush_off:                  N/A
+Write_cache_flushes:           594830819
+Write_cache_blocks_flushed:    3284869527
+Internal bus 1 busy ticks:     N/A
+Internal bus 1 idle ticks:     N/A
+Internal bus 2 busy ticks:     N/A
+Internal bus 2 idle ticks:     N/A
+Internal bus 3 busy ticks:     N/A
+Internal bus 3 idle ticks:     N/A
+Internal bus 4 busy ticks:     N/A
+Internal bus 4 idle ticks:     N/A
+Internal bus 5 busy ticks:     N/A
+Internal bus 5 idle ticks:     N/A
+Controller busy ticks:         2199758
+Controller idle ticks:         12361970
+Serial Number For The SP:      CF2Z7134700040
+
+
+"""
+
 AGENT_RESULT = {
     'agent_rev': '7.33.1 (0.38)',
     'name': 'K10',
@@ -520,6 +740,44 @@ PORT_RESULT = [
         'ipv6': None,
         'ipv6_mask': None
     }]
+
+METRICS_RESULT = [
+    constants.metric_struct(name='iops', labels={
+        'storage_id': '12345',
+        'resource_type': 'controller',
+        'resource_id': '3600424',
+        'type': 'RAW',
+        'unit': 'IOPS'
+    }, values={1628472900000: 1443420398}),
+    constants.metric_struct(name='readIops', labels={
+        'storage_id': '12345',
+        'resource_type': 'controller',
+        'resource_id': '3600424',
+        'type': 'RAW',
+        'unit': 'IOPS'
+    }, values={1628472900000: 950598365}),
+    constants.metric_struct(name='iops', labels={
+        'storage_id': '12345',
+        'resource_type': 'volume',
+        'resource_id': '84',
+        'type': 'RAW',
+        'unit': 'IOPS'
+    }, values={1628472900000: 123025}),
+    constants.metric_struct(name='iops', labels={
+        'storage_id': '12345',
+        'resource_type': 'port',
+        'resource_id': 'A-6',
+        'type': 'RAW',
+        'unit': 'IOPS'
+    }, values={1628472900000: 841118639}),
+    constants.metric_struct(name='iops', labels={
+        'storage_id': '12345',
+        'resource_type': 'disk',
+        'resource_id': 'Bus0Enclosure0Disk0',
+        'type': 'RAW',
+        'unit': 'IOPS'
+    }, values={1628472900000: 25528394})
+]
 
 
 def create_driver():
@@ -696,3 +954,52 @@ class TestVnxBlocktorageDriver(TestCase):
                          BUS_PORT_DATAS, BUS_PORT_STATE_DATAS])
         ports = self.driver.list_ports(context)
         self.assertDictEqual(ports[0], PORT_RESULT[0])
+
+    def test_get_perf_metrics(self):
+        driver = create_driver()
+        resource_metrics = {
+            'controller': [
+                'iops', 'readIops', 'writeIops',
+                'throughput', 'readThroughput', 'writeThroughput',
+                'responseTime'
+            ],
+            'volume': [
+                'iops', 'readIops', 'writeIops',
+                'throughput', 'readThroughput', 'writeThroughput',
+                'responseTime',
+                'cacheHitRatio', 'readCacheHitRatio', 'writeCacheHitRatio',
+                'ioSize', 'readIoSize', 'writeIoSize',
+            ],
+            'port': [
+                'iops', 'readIops', 'writeIops',
+                'throughput', 'readThroughput', 'writeThroughput',
+                'responseTime'
+            ],
+            'disk': [
+                'iops', 'readIops', 'writeIops',
+                'throughput', 'readThroughput', 'writeThroughput',
+                'responseTime'
+            ]
+        }
+        start_time = 1628472280000
+        end_time = 1628472900000
+        NaviClient.exec = mock.Mock(
+            side_effect=[DOMAIN_INFOS, SP_DATAS, SP_DATAS_DETAILL,
+                         SP_DATAS_DETAILL, GET_ALL_LUN_INFOS, PORT_DATAS,
+                         DISK_DATAS])
+        metrics = driver.collect_perf_metrics(context, '12345',
+                                              resource_metrics, start_time,
+                                              end_time)
+        self.assertEqual(metrics[0], METRICS_RESULT[0])
+        self.assertEqual(metrics[13], METRICS_RESULT[2])
+        self.assertEqual(metrics[23], METRICS_RESULT[3])
+        self.assertEqual(metrics[29], METRICS_RESULT[4])
+
+    def test_get_capabilities(self):
+        driver = create_driver()
+        cap = driver.get_capabilities(context)
+        self.assertIsNotNone(cap.get('resource_metrics'))
+        self.assertIsNotNone(cap.get('resource_metrics').get('storagePool'))
+        self.assertIsNotNone(cap.get('resource_metrics').get('volume'))
+        self.assertIsNotNone(cap.get('resource_metrics').get('port'))
+        self.assertIsNotNone(cap.get('resource_metrics').get('disk'))

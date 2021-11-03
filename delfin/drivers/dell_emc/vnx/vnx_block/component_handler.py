@@ -11,6 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+import copy
 import re
 
 import six
@@ -49,7 +50,7 @@ class ComponentHandler(object):
                 'free_capacity': pool_capacity.get('free_capacity')
             }
         else:
-            err_msg = "domain or agent error: %s, %s" %\
+            err_msg = "domain or agent error: %s, %s" % \
                       (six.text_type(domain), six.text_type(agent))
             LOG.error(err_msg)
             raise exception.StorageBackendException(err_msg)
@@ -443,3 +444,237 @@ class ComponentHandler(object):
             name = '%s-%s' % (iscsi_port.get('sp'), iscsi_port.get('port_id'))
             iscsi_port_map[name] = iscsi_port
         return iscsi_port_map
+
+    def collect_perf_metrics(self, storage_id, resource_metrics,
+                             start_time, end_time):
+        metrics = []
+        try:
+            # controller metrics
+            if resource_metrics.get(constants.ResourceType.CONTROLLER):
+                controller_metrics = self.get_controller_metrics(
+                    storage_id,
+                    resource_metrics.get(constants.ResourceType.CONTROLLER),
+                    start_time, end_time)
+                metrics.extend(controller_metrics)
+
+            # volume metrics
+            if resource_metrics.get(constants.ResourceType.VOLUME):
+                volume_metrics = self.get_volume_metrics(
+                    storage_id,
+                    resource_metrics.get(constants.ResourceType.VOLUME),
+                    start_time, end_time)
+                metrics.extend(volume_metrics)
+
+            # port metrics
+            if resource_metrics.get(constants.ResourceType.PORT):
+                port_metrics = self.get_port_metrics(
+                    storage_id,
+                    resource_metrics.get(constants.ResourceType.PORT),
+                    start_time, end_time)
+                metrics.extend(port_metrics)
+
+            # disk metrics
+            if resource_metrics.get(constants.ResourceType.DISK):
+                disk_metrics = self.get_disk_metrics(
+                    storage_id,
+                    resource_metrics.get(constants.ResourceType.DISK),
+                    start_time, end_time)
+                metrics.extend(disk_metrics)
+        except exception.DelfinException as err:
+            err_msg = "Failed to collect metrics from VnxBlockStor: %s" % \
+                      (six.text_type(err))
+            LOG.error(err_msg)
+            raise err
+        except Exception as err:
+            err_msg = "Failed to collect metrics from VnxBlockStor: %s" % \
+                      (six.text_type(err))
+            LOG.error(err_msg)
+            raise exception.InvalidResults(err_msg)
+        return metrics
+
+    def get_controller_metrics(self, storage_id, metric_list,
+                               start_time, end_time):
+        metrics = []
+        sp_map = {}
+
+        domains = self.navi_handler.get_domain()
+        if domains:
+            sps = self.navi_handler.get_controllers()
+            for sp in (sps or []):
+                sp_map[sp.get('sp_name')] = sp.get('signature_for_the_sp')
+            for domain in domains:
+                if domain and domain.get('ip_address'):
+                    sp_ip = domain.get('ip_address')
+                    sp_info = self.navi_handler.get_sp_detail(sp_ip)
+                    if sp_info:
+                        sp_info['readIops'] = int(sp_info.get('read_requests'))
+                        sp_info['writeIops'] = int(
+                            sp_info.get('write_requests'))
+                        sp_info['iops'] = sp_info.get(
+                            'readIops') + sp_info.get('writeIops')
+
+                        sp_info['readThroughput'] = int(
+                            sp_info.get('blocks_read', 0)) / consts.BLOCK_SIZE
+                        sp_info['writeThroughput'] = int(
+                            sp_info.get('blocks_written',
+                                        0)) / consts.BLOCK_SIZE
+                        sp_info['throughput'] = sp_info.get(
+                            'readThroughput') + sp_info.get('writeThroughput')
+
+                        sp_id = sp_map.get(sp_info.get('storage_processor'))
+                        if sp_id:
+                            labels = {
+                                'storage_id': storage_id,
+                                'resource_type':
+                                    constants.ResourceType.CONTROLLER,
+                                'resource_id': sp_id,
+                                'type': 'RAW',
+                                'unit': ''
+                            }
+                            metric_model_list = self._get_metric_model(
+                                metric_list,
+                                labels,
+                                sp_info,
+                                consts.CONTROLLER_CAP, end_time)
+                            if metric_model_list:
+                                metrics.extend(metric_model_list)
+        return metrics
+
+    def _get_metric_model(self, metric_list, labels, metric_value, obj_cap,
+                          end_time):
+        metric_model_list = []
+        for metric_name in (metric_list or []):
+            values = {}
+            obj_labels = copy.deepcopy(labels)
+            obj_labels['unit'] = obj_cap.get(metric_name).get('unit')
+            if metric_value and metric_value.get(metric_name) is not None:
+                values[end_time] = metric_value.get(metric_name)
+            if values:
+                metric_model = constants.metric_struct(name=metric_name,
+                                                       labels=obj_labels,
+                                                       values=values)
+                metric_model_list.append(metric_model)
+        return metric_model_list
+
+    def get_volume_metrics(self, storage_id, metric_list,
+                           start_time, end_time):
+        metrics = []
+        volumes = self.navi_handler.get_all_lun()
+        for volume in (volumes or []):
+            if volume:
+                if volume.get('read_requests'):
+                    volume['readIops'] = int(volume.get('read_requests'))
+                    volume['writeIops'] = int(volume.get('write_requests'))
+                    volume['iops'] = volume.get('readIops') + \
+                        volume.get('writeIops')
+                if volume.get('blocks_read'):
+                    volume['readThroughput'] = int(
+                        volume.get('blocks_read')) / consts.BLOCK_SIZE
+                    volume['writeThroughput'] = int(
+                        volume.get('blocks_written')) / consts.BLOCK_SIZE
+                    volume['throughput'] = volume.get(
+                        'readThroughput') + volume.get('writeThroughput')
+                if volume.get('read_hit_ratio'):
+                    volume['readCacheHitRatio'] = float(
+                        volume.get('read_hit_ratio'))
+                    volume['writeCacheHitRatio'] = float(
+                        volume.get('write_hit_ratio'))
+
+                responseTime = float(volume.get('average_read_time', 0))
+                if volume.get('average_write_time', 0) > volume.get(
+                        'average_read_time', 0):
+                    responseTime = float(volume.get('average_write_time', 0))
+                volume['responseTime'] = responseTime
+
+                labels = {
+                    'storage_id': storage_id,
+                    'resource_type':
+                        constants.ResourceType.VOLUME,
+                    'resource_id': str(volume.get('logical_unit_number')),
+                    'type': 'RAW',
+                    'unit': ''
+                }
+                metric_model_list = self._get_metric_model(
+                    metric_list,
+                    labels,
+                    volume,
+                    consts.VOLUME_CAP, end_time)
+                if metric_model_list:
+                    metrics.extend(metric_model_list)
+
+        return metrics
+
+    def get_port_metrics(self, storage_id, metric_list, start_time, end_time):
+        metrics = []
+        ports = self.navi_handler.get_ports()
+        for port in (ports or []):
+            if port:
+                port_id = port.get('sp_port_id')
+                sp_name = port.get('sp_name').replace('SP ', '')
+                name = '%s-%s' % (sp_name, port_id)
+                if port.get('reads'):
+                    port['readIops'] = int(port.get('reads'))
+                    port['writeIops'] = int(port.get('writes'))
+                    port['iops'] = port.get('readIops') + \
+                        port.get('writeIops')
+                if port.get('blocks_read'):
+                    port['readThroughput'] = int(
+                        port.get('blocks_read')) / consts.BLOCK_SIZE
+                    port['writeThroughput'] = int(
+                        port.get('blocks_written')) / consts.BLOCK_SIZE
+                    port['throughput'] = port.get(
+                        'readThroughput') + port.get('writeThroughput')
+
+                labels = {
+                    'storage_id': storage_id,
+                    'resource_type':
+                        constants.ResourceType.PORT,
+                    'resource_id': name,
+                    'type': 'RAW',
+                    'unit': ''
+                }
+                metric_model_list = self._get_metric_model(
+                    metric_list,
+                    labels,
+                    port,
+                    consts.PORT_CAP, end_time)
+                if metric_model_list:
+                    metrics.extend(metric_model_list)
+
+        return metrics
+
+    def get_disk_metrics(self, storage_id, metric_list, start_time, end_time):
+        metrics = []
+        disks = self.navi_handler.get_disks()
+        for disk in (disks or []):
+            if disk:
+                if disk.get('read_requests'):
+                    disk['readIops'] = int(disk.get('read_requests'))
+                    disk['writeIops'] = int(disk.get('write_requests'))
+                    disk['iops'] = disk.get('readIops') + \
+                        disk.get('writeIops')
+                if disk.get('kbytes_read'):
+                    disk['readThroughput'] = int(
+                        disk.get('kbytes_read')) / units.Ki
+                    disk['writeThroughput'] = int(
+                        disk.get('kbytes_written')) / units.Ki
+                    disk['throughput'] = disk.get(
+                        'readThroughput') + disk.get('writeThroughput')
+
+                labels = {
+                    'storage_id': storage_id,
+                    'resource_type':
+                        constants.ResourceType.DISK,
+                    'resource_id': disk.get('disk_id'),
+                    'type': 'RAW',
+                    'unit': ''
+                }
+                metric_model_list = self._get_metric_model(
+                    metric_list,
+                    labels,
+                    disk,
+                    consts.DISK_CAP, end_time)
+                if metric_model_list:
+                    metrics.extend(metric_model_list)
+
+        return metrics
