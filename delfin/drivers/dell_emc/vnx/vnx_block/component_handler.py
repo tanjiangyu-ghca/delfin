@@ -458,12 +458,12 @@ class ComponentHandler(object):
                 metrics.extend(controller_metrics)
 
             # volume metrics
-            # if resource_metrics.get(constants.ResourceType.VOLUME):
-            #     volume_metrics = self.get_volume_metrics(
-            #         storage_id,
-            #         resource_metrics.get(constants.ResourceType.VOLUME),
-            #         start_time, end_time)
-            #     metrics.extend(volume_metrics)
+            if resource_metrics.get(constants.ResourceType.VOLUME):
+                volume_metrics = self.get_volume_metrics(
+                    storage_id,
+                    resource_metrics.get(constants.ResourceType.VOLUME),
+                    start_time, end_time)
+                metrics.extend(volume_metrics)
 
             # port metrics
             # if resource_metrics.get(constants.ResourceType.PORT):
@@ -555,3 +555,51 @@ class ComponentHandler(object):
                                                        values=values)
                 metric_model_list.append(metric_model)
         return metric_model_list
+
+    def get_volume_metrics(self, storage_id, metric_list,
+                           start_time, end_time):
+        metrics = []
+        volumes = self.navi_handler.get_all_lun()
+        for volume in (volumes or []):
+            if volume:
+                if volume.get('read_requests'):
+                    volume['readIops'] = int(volume.get('read_requests'))
+                    volume['writeIops'] = int(volume.get('write_requests'))
+                    volume['iops'] = volume.get('readIops') + \
+                        volume.get('writeIops')
+                if volume.get('blocks_read'):
+                    volume['readThroughput'] = int(
+                        volume.get('blocks_read')) / consts.BLOCK_SIZE
+                    volume['writeThroughput'] = int(
+                        volume.get('blocks_written')) / consts.BLOCK_SIZE
+                    volume['throughput'] = volume.get(
+                        'readThroughput') + volume.get('writeThroughput')
+                if volume.get('read_hit_ratio'):
+                    volume['readCacheHitRatio'] = float(
+                        volume.get('read_hit_ratio'))
+                    volume['writeCacheHitRatio'] = float(
+                        volume.get('write_hit_ratio'))
+
+                responseTime = float(volume.get('average_read_time', 0))
+                if volume.get('average_write_time', 0) > volume.get(
+                        'average_read_time', 0):
+                    responseTime = float(volume.get('average_write_time', 0))
+                volume['responseTime'] = responseTime
+
+                labels = {
+                    'storage_id': storage_id,
+                    'resource_type':
+                        constants.ResourceType.VOLUME,
+                    'resource_id': str(volume.get('logical_unit_number')),
+                    'type': 'RAW',
+                    'unit': ''
+                }
+                metric_model_list = self._get_metric_model(
+                    metric_list,
+                    labels,
+                    volume,
+                    consts.VOLUME_CAP, end_time)
+                if metric_model_list:
+                    metrics.extend(metric_model_list)
+
+        return metrics

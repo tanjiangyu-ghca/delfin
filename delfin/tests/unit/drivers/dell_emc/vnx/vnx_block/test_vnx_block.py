@@ -98,6 +98,148 @@ GET_ALL_LUN_INFOS = """
         State:                      Bound
         LUN Capacity(Megabytes):    10240
         Is Thin LUN:                YES
+        LOGICAL UNIT NUMBER 84
+Name                        esx_208_raid_1
+Read Requests:              81835
+Write Requests:             41190
+Blocks read:                4811166
+Blocks written:             41230
+Read cache hits:            77420
+Read cache misses:          4415
+Prefetched blocks:          0
+Unused prefetched blocks:   0
+Write cache hits:           41190
+Forced flushes:             0
+Read Hit Ratio:             94
+Write Hit Ratio:            84
+RAID Type:                  RAID5
+RAIDGroup ID:               1
+State:                      Bound
+Stripe Crossing:            1277
+Element Size:               128
+Current owner:              SP A
+Offset:                     N/A
+Auto-trespass:              DISABLED
+Auto-assign:                DISABLED
+Write cache:                ENABLED
+Read cache:                 ENABLED
+Idle Threshold:             N/A
+Idle Delay Time:            N/A
+Write Aside Size:           0
+Default Owner:              SP A
+Rebuild Priority:           N/A
+Verify Priority:            N/A
+Prct Reads Forced Flushed:  N/A
+Prct Writes Forced Flushed: N/A
+Prct Rebuilt:               100
+Prct Bound:                 N/A
+LUN Capacity(Megabytes):    30720
+LUN Capacity(Blocks):       62914560
+UID:                        60:06:01:60:28:F0:36:00:11:EA:95:A0:B9:9F:EA:11
+LUN Capacity(Stripes):      122880
+Blocks Read SPA:            2378775  (optimal)
+Blocks Read SPB:            2432391
+Blocks Written SPA:         20714  (optimal)
+Blocks Written SPB:         20516
+Read Requests SPA:          40777  (optimal)
+Read Requests SPB:          41058
+Write Requests SPA:         20698  (optimal)
+Write Requests SPB:         20492
+LUN Busy Ticks SPA:         2511531  (optimal)
+LUN Busy Ticks SPB:         2668802
+LUN Idle Ticks SPA:         3302295952  (optimal)
+LUN Idle Ticks SPB:         3317505096
+Number of arrivals with non-zero queue:          16451
+Sum queue lengths by arrivals:                   139481
+Statistics logging start time:                   10/26/20 09:18:04
+Statistics logging current time:                 10/26/20 15:43:36
+Explicit Trespasses SPA:                 0
+Explicit Trespasses SPB:                 0
+Explicit Trespasses:                     0
+Implicit Trespasses SPA:                 2
+Implicit Trespasses SPB:                 0
+Implicit Trespasses:                     2
+Non-zero Request Count Arrivals SPA:           8135  (optimal)
+Non-zero Request Count Arrivals SPB:           8316
+Non-zero Request Count Arrivals:              16451
+Sum of Oustanding Requests SPA:    69613  (optimal)
+Sum of Oustanding Requests SPB:    69868
+Sum of Oustanding Requests:      139481
+Shrink State:                    N/A
+Write cache Re-hits:        34645
+Fast Write Count:           41190
+Is Private:                 NO
+Snapshots List:             Not Available
+MirrorView Name if any:     Not Available
+Address Offset:             813924352
+Is Meta LUN:                NO
+Is Thin LUN:                NO
+Is Pool LUN:                NO
+Is Snapshot Mount Point:    NO
+LUN Idle Ticks:             2324833752
+LUN Busy Ticks:             5180333
+LUN Offline (Cache Dirty Condition):  NO
+LU Storage Groups:          "Storage_esx_208"
+Device Map:                 Valid
+Average Read Time:            2862
+Average Write Time:            29972
+FAST Cache :             N/A
+FAST Cache Read Hits:    N/A
+FAST Cache Read Misses:  N/A
+FAST Cache Write Hits:   N/A
+FAST Cache Write Misses: N/A
+
+LOGICAL UNIT NUMBER 220
+Name                        LUN 220
+Minimum latency reads N/A
+
+RAID Type:                  N/A
+RAIDGroup ID:               N/A
+State:                      Bound
+Stripe Crossing:            0
+Element Size:               0
+Current owner:              SP B
+Offset:                     N/A
+Auto-trespass:              DISABLED
+Auto-assign:                DISABLED
+Write cache:                ENABLED
+Read cache:                 ENABLED
+Idle Threshold:             N/A
+Idle Delay Time:            N/A
+Write Aside Size:           0
+Default Owner:              SP B
+Rebuild Priority:           N/A
+Verify Priority:            N/A
+Prct Reads Forced Flushed:  N/A
+Prct Writes Forced Flushed: N/A
+Prct Rebuilt:               100
+Prct Bound:                 N/A
+LUN Capacity(Megabytes):    16384
+LUN Capacity(Blocks):       33554432
+UID:                        60:06:01:60:28:F0:36:00:53:1A:3A:E7:33:89:EA:11
+LUN Capacity(Stripes):      N/A
+Shrink State:                    N/A
+Is Private:                 NO
+Snapshots List:             Not Available
+MirrorView Name if any:     Not Available
+Address Offset:             N/A
+Is Meta LUN:                NO
+Is Thin LUN:                YES
+Is Pool LUN:                YES
+Is Snapshot Mount Point:    NO
+LUN Idle Ticks:             N/A
+LUN Busy Ticks:             N/A
+LUN Offline (Cache Dirty Condition):  N/A
+LU Storage Groups:
+Device Map:                 Valid
+Average Read Time:            0
+Average Write Time:            0
+FAST Cache :             N/A
+FAST Cache Read Hits:    N/A
+FAST Cache Read Misses:  N/A
+FAST Cache Write Hits:   N/A
+FAST Cache Write Misses: N/A
+
         """
 CER_INFOS = """
 -----------------------------
@@ -603,7 +745,15 @@ METRICS_RESULT = [
         'resource_id': '3600424',
         'type': 'RAW',
         'unit': 'IOPS'
-    }, values={1628472900000: 950598365})]
+    }, values={1628472900000: 950598365}),
+    constants.metric_struct(name='iops', labels={
+        'storage_id': '12345',
+        'resource_type': 'volume',
+        'resource_id': '84',
+        'type': 'RAW',
+        'unit': 'IOPS'
+    }, values={1628472900000: 123025})
+]
 
 
 def create_driver():
@@ -811,13 +961,13 @@ class TestVnxBlocktorageDriver(TestCase):
         end_time = 1628472900000
         NaviClient.exec = mock.Mock(
             side_effect=[DOMAIN_INFOS, SP_DATAS, SP_DATAS_DETAILL,
-                         SP_DATAS_DETAILL])
+                         SP_DATAS_DETAILL, GET_ALL_LUN_INFOS])
         metrics = driver.collect_perf_metrics(context, '12345',
                                               resource_metrics, start_time,
                                               end_time)
         print('test metrics==={}'.format(metrics))
         self.assertEqual(metrics[0], METRICS_RESULT[0])
-        # self.assertEqual(metrics[14], METRICS_RESULT[1])
+        self.assertEqual(metrics[13], METRICS_RESULT[2])
         # self.assertEqual(metrics[34], METRICS_RESULT[2])
         # self.assertEqual(metrics[48], METRICS_RESULT[3])
 
