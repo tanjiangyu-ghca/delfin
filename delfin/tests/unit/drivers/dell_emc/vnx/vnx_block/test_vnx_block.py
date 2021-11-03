@@ -266,7 +266,17 @@ DISK_DATAS = """
         Hot Spare:               N/A
         Serial Number:           KSJEX35J
         Capacity:                549691
+        Number of Reads:         14684285
+        Number of Writes:        10844109
+        Number of Luns:          10
         Raid Group ID:           0
+        Clariion Part Number:    DG118032933
+        Request Service Time:    N/A
+        Read Requests:           14684285
+        Write Requests:          10844109
+        Kbytes Read:             550362331
+        Kbytes Written:          481080832
+        Stripe Boundary Crossing: 145505
         Drive Type:              SAS
         Current Speed: 6Gbps
         """
@@ -759,7 +769,14 @@ METRICS_RESULT = [
         'resource_id': 'A-6',
         'type': 'RAW',
         'unit': 'IOPS'
-    }, values={1628472900000: 841118639})
+    }, values={1628472900000: 841118639}),
+    constants.metric_struct(name='iops', labels={
+        'storage_id': '12345',
+        'resource_type': 'disk',
+        'resource_id': 'Bus0Enclosure0Disk0',
+        'type': 'RAW',
+        'unit': 'IOPS'
+    }, values={1628472900000: 25528394})
 ]
 
 
@@ -968,15 +985,15 @@ class TestVnxBlocktorageDriver(TestCase):
         end_time = 1628472900000
         NaviClient.exec = mock.Mock(
             side_effect=[DOMAIN_INFOS, SP_DATAS, SP_DATAS_DETAILL,
-                         SP_DATAS_DETAILL, GET_ALL_LUN_INFOS, PORT_DATAS])
+                         SP_DATAS_DETAILL, GET_ALL_LUN_INFOS, PORT_DATAS,
+                         DISK_DATAS])
         metrics = driver.collect_perf_metrics(context, '12345',
                                               resource_metrics, start_time,
                                               end_time)
-        print('test metrics==={}'.format(metrics))
         self.assertEqual(metrics[0], METRICS_RESULT[0])
         self.assertEqual(metrics[13], METRICS_RESULT[2])
         self.assertEqual(metrics[23], METRICS_RESULT[3])
-        # self.assertEqual(metrics[48], METRICS_RESULT[3])
+        self.assertEqual(metrics[29], METRICS_RESULT[4])
 
     def test_get_capabilities(self):
         driver = create_driver()

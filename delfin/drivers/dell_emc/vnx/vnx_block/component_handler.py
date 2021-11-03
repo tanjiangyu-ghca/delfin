@@ -474,12 +474,12 @@ class ComponentHandler(object):
                 metrics.extend(port_metrics)
 
             # disk metrics
-            # if resource_metrics.get(constants.ResourceType.DISK):
-            #     disk_metrics = self.get_disk_metrics(
-            #         storage_id,
-            #         resource_metrics.get(constants.ResourceType.DISK),
-            #         start_time, end_time)
-            #     metrics.extend(disk_metrics)
+            if resource_metrics.get(constants.ResourceType.DISK):
+                disk_metrics = self.get_disk_metrics(
+                    storage_id,
+                    resource_metrics.get(constants.ResourceType.DISK),
+                    start_time, end_time)
+                metrics.extend(disk_metrics)
         except exception.DelfinException as err:
             err_msg = "Failed to collect metrics from VnxBlockStor: %s" % \
                       (six.text_type(err))
@@ -638,6 +638,42 @@ class ComponentHandler(object):
                     labels,
                     port,
                     consts.PORT_CAP, end_time)
+                if metric_model_list:
+                    metrics.extend(metric_model_list)
+
+        return metrics
+
+    def get_disk_metrics(self, storage_id, metric_list, start_time, end_time):
+        metrics = []
+        disks = self.navi_handler.get_disks()
+        for disk in (disks or []):
+            if disk:
+                if disk.get('read_requests'):
+                    disk['readIops'] = int(disk.get('read_requests'))
+                    disk['writeIops'] = int(disk.get('write_requests'))
+                    disk['iops'] = disk.get('readIops') + \
+                        disk.get('writeIops')
+                if disk.get('kbytes_read'):
+                    disk['readThroughput'] = int(
+                        disk.get('kbytes_read')) / units.Ki
+                    disk['writeThroughput'] = int(
+                        disk.get('kbytes_written')) / units.Ki
+                    disk['throughput'] = disk.get(
+                        'readThroughput') + disk.get('writeThroughput')
+
+                labels = {
+                    'storage_id': storage_id,
+                    'resource_type':
+                        constants.ResourceType.DISK,
+                    'resource_id': disk.get('disk_id'),
+                    'type': 'RAW',
+                    'unit': ''
+                }
+                metric_model_list = self._get_metric_model(
+                    metric_list,
+                    labels,
+                    disk,
+                    consts.DISK_CAP, end_time)
                 if metric_model_list:
                     metrics.extend(metric_model_list)
 
