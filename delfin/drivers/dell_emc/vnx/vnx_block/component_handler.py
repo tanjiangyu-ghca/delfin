@@ -466,12 +466,12 @@ class ComponentHandler(object):
                 metrics.extend(volume_metrics)
 
             # port metrics
-            # if resource_metrics.get(constants.ResourceType.PORT):
-            #     port_metrics = self.get_port_metrics(
-            #         storage_id,
-            #         resource_metrics.get(constants.ResourceType.PORT),
-            #         start_time, end_time)
-            #     metrics.extend(port_metrics)
+            if resource_metrics.get(constants.ResourceType.PORT):
+                port_metrics = self.get_port_metrics(
+                    storage_id,
+                    resource_metrics.get(constants.ResourceType.PORT),
+                    start_time, end_time)
+                metrics.extend(port_metrics)
 
             # disk metrics
             # if resource_metrics.get(constants.ResourceType.DISK):
@@ -599,6 +599,45 @@ class ComponentHandler(object):
                     labels,
                     volume,
                     consts.VOLUME_CAP, end_time)
+                if metric_model_list:
+                    metrics.extend(metric_model_list)
+
+        return metrics
+
+    def get_port_metrics(self, storage_id, metric_list, start_time, end_time):
+        metrics = []
+        ports = self.navi_handler.get_ports()
+        for port in (ports or []):
+            if port:
+                port_id = port.get('sp_port_id')
+                sp_name = port.get('sp_name').replace('SP ', '')
+                name = '%s-%s' % (sp_name, port_id)
+                if port.get('reads'):
+                    port['readIops'] = int(port.get('reads'))
+                    port['writeIops'] = int(port.get('writes'))
+                    port['iops'] = port.get('readIops') + \
+                        port.get('writeIops')
+                if port.get('blocks_read'):
+                    port['readThroughput'] = int(
+                        port.get('blocks_read')) / consts.BLOCK_SIZE
+                    port['writeThroughput'] = int(
+                        port.get('blocks_written')) / consts.BLOCK_SIZE
+                    port['throughput'] = port.get(
+                        'readThroughput') + port.get('writeThroughput')
+
+                labels = {
+                    'storage_id': storage_id,
+                    'resource_type':
+                        constants.ResourceType.PORT,
+                    'resource_id': name,
+                    'type': 'RAW',
+                    'unit': ''
+                }
+                metric_model_list = self._get_metric_model(
+                    metric_list,
+                    labels,
+                    port,
+                    consts.PORT_CAP, end_time)
                 if metric_model_list:
                     metrics.extend(metric_model_list)
 

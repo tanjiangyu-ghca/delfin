@@ -752,7 +752,14 @@ METRICS_RESULT = [
         'resource_id': '84',
         'type': 'RAW',
         'unit': 'IOPS'
-    }, values={1628472900000: 123025})
+    }, values={1628472900000: 123025}),
+    constants.metric_struct(name='iops', labels={
+        'storage_id': '12345',
+        'resource_type': 'port',
+        'resource_id': 'A-6',
+        'type': 'RAW',
+        'unit': 'IOPS'
+    }, values={1628472900000: 841118639})
 ]
 
 
@@ -961,14 +968,14 @@ class TestVnxBlocktorageDriver(TestCase):
         end_time = 1628472900000
         NaviClient.exec = mock.Mock(
             side_effect=[DOMAIN_INFOS, SP_DATAS, SP_DATAS_DETAILL,
-                         SP_DATAS_DETAILL, GET_ALL_LUN_INFOS])
+                         SP_DATAS_DETAILL, GET_ALL_LUN_INFOS, PORT_DATAS])
         metrics = driver.collect_perf_metrics(context, '12345',
                                               resource_metrics, start_time,
                                               end_time)
         print('test metrics==={}'.format(metrics))
         self.assertEqual(metrics[0], METRICS_RESULT[0])
         self.assertEqual(metrics[13], METRICS_RESULT[2])
-        # self.assertEqual(metrics[34], METRICS_RESULT[2])
+        self.assertEqual(metrics[23], METRICS_RESULT[3])
         # self.assertEqual(metrics[48], METRICS_RESULT[3])
 
     def test_get_capabilities(self):
