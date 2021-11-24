@@ -14,6 +14,7 @@
 import re
 
 import six
+import json
 from delfin import exception
 from oslo_log import log
 from oslo_utils import units
@@ -366,8 +367,8 @@ class VplexStorageDriver(driver.StorageDriver):
             port_name = port_attr.get('name')
             export_status = port_attr.get('export-status')
             speed, max_speed, protocols, role, port_status, \
-                operational_status = self.get_hardware_port_info(
-                    hardware_port_map, port_name, 'attributes')
+            operational_status = self.get_hardware_port_info(
+                hardware_port_map, port_name, 'attributes')
             connection_status = VplexStorageDriver.analyse_port_connect_status(
                 export_status)
             port = {
@@ -393,6 +394,68 @@ class VplexStorageDriver(driver.StorageDriver):
             }
             port_list.append(port)
         return port_list
+
+    def collect_perf_metrics(self, context, storage_id,
+                             resource_metrics, start_time, end_time):
+        metrics = []
+        resource_types = []
+        volmon_files = []
+        sysmon_files = []
+        # 解析 resource_metrics
+        # resource_types = resource_metrics.keys()
+        for resource_type, metrics in resource_metrics.item():
+            resource_types.append(resource_type)
+
+        # 获取statc files
+        monitor_resp = self.rest_handler.get_monitoring_director_monitor_resp()
+        mon_files = VplexStorageDriver.get_resource_names(monitor_resp)
+        for mon_file in mon_files:
+            if constants.ResourceType.VOLUME in resource_types:
+                volmon_files.append(mon_file)
+            else:
+                sysmon_files.append(mon_file)
+
+        # 获取static info
+        if volmon_files:
+            vol_static_resp = self.rest_handler.get_monitor_get_stats_resp(
+                volmon_files)
+            self.get_volume_metrics(storage_id, resource_metrics,
+                                    vol_static_resp)
+        if sysmon_files:
+            sys_static_resp = self.rest_handler.get_monitor_get_stats_resp(
+                sysmon_files)
+
+        # 分析performance
+        # storage-pool metrics
+        if resource_metrics.get(constants.ResourceType.STORAGE_POOL):
+            pass
+
+        # volume metrics
+        if resource_metrics.get(constants.ResourceType.VOLUME):
+            volume_metrics = self.get_volume_metrics(
+                storage_id,
+                resource_metrics.get(constants.ResourceType.VOLUME),
+                vol_static_resp)
+            metrics.extend(volume_metrics)
+
+        # controller metrics
+        if resource_metrics.get(constants.ResourceType.CONTROLLER):
+            pass
+            #     controller_metrics = self.get_controller_metrics(
+            #         storage_id,
+            #         resource_metrics.get(constants.ResourceType.CONTROLLER),
+            #         sys_static_resp)
+            #     metrics.extend(controller_metrics)
+
+        # port metrics
+        if resource_metrics.get(constants.ResourceType.PORT):
+            pass
+            # port_metrics = self.get_port_metrics(
+            #     storage_id,
+            #     resource_metrics.get(constants.ResourceType.PORT),
+            #     sys_static_resp)
+            # metrics.extend(port_metrics)
+
 
     @staticmethod
     def get_context_list(response):
@@ -543,15 +606,88 @@ class VplexStorageDriver(driver.StorageDriver):
                     speed = speed * units.k
         return speed
 
+    @staticmethod
+    def handle_detail_list(detail_info, detail_map, split):
+        detail_arr = detail_info.split('\n')
+        for detail in detail_arr:
+            if detail is not None and detail != '':
+                strinfo = detail.split(split, 1)
+                key = strinfo[0]
+                value = ''
+                if len(strinfo) > 1:
+                    value = strinfo[1]
+                detail_map[key] = value
 
-@staticmethod
-def handle_detail_list(detail_info, detail_map, split):
-    detail_arr = detail_info.split('\n')
-    for detail in detail_arr:
-        if detail is not None and detail != '':
-            strinfo = detail.split(split, 1)
-            key = strinfo[0]
-            value = ''
-            if len(strinfo) > 1:
-                value = strinfo[1]
-            detail_map[key] = value
+    @staticmethod
+    def analyse_volume_performance():
+        pass
+
+    @staticmethod
+    def analyse_system_performance():
+        pass
+
+    def get_volume_metrics(self, storage_id, selection, response):
+        volume_metrics = []
+        metris = selection.get(constants.ResourceType.VOLUME)
+        custom_data = response.get('custom-data')
+        custom_data = json.dumps(custom_data)
+        # director -> volume -> metric
+        for director, statics in custom_data.items():
+            time_str = statics.get('timestamp')
+            time_stamp = time.mktime(
+                time.strptime(time_str, "%Y-%m-%d %H:%M:%S"))
+            volumes = statics.get('stats')
+            for volume in volumes:
+                vol_name = volume.get('Virtual Volume')
+                vol_id = volume.get('VPD Id')
+                try:
+                    iops = volume.get('fe-lu ops (counts/s)')
+                    read_throughput = volume.get('fe-lu read (KB/s)')
+                    write_throughput = volume.get('fe-lu write (KB/s)')
+                    read_throughput = float(read_throughput) / units.M
+                    write_throughput = float(write_throughput) / units.M
+                    throughput = read_throughput + write_throughput
+                    for metric in selection:
+                        if metric in consts.VOLUME_CAP:
+                            labels = {
+                                'storage_id': storage_id,
+                                'resource_type': 'volume',
+                                'resource_id': vol_id,
+                                'resource_name': vol_name,
+                                'type': 'RAW',
+                                'unit': consts.IOPS_DESCRIPTION['unit']
+                            }
+                            if metric == consts.IOPS_DESCRIPTION['name']:
+                                labels['unit'] = consts.IOPS_DESCRIPTION[
+                                    'unit']
+                                values = {time_stamp: iops}
+                            elif metric == consts.THROUGHPUT_DESCRIPTION[
+                                'name']:
+                                labels['unit'] = consts.THROUGHPUT_DESCRIPTION[
+                                    'unit']
+                                values = {time_stamp: throughput}
+                            elif metric == consts.READ_THROUGHPUT_DESCRIPTION[
+                                'name']:
+                                labels['unit'] = \
+                                    consts.READ_THROUGHPUT_DESCRIPTION['unit']
+                                values = {time_stamp: read_throughput}
+                            elif metric == consts.WRITE_THROUGHPUT_DESCRIPTION[
+                                'name']:
+                                labels['unit'] = \
+                                    consts.WRITE_THROUGHPUT_DESCRIPTION['unit']
+                                values = {time_stamp: write_throughput}
+                            m = constants.metric_struct(name=metric,
+                                                        labels=labels,
+                                                        values=values)
+                            volume_metrics.append(m)
+                except Exception as ex:
+                    msg = "Failed to get metrics for volume:{0} error: {1}" \
+                        .format(vol_name, ex)
+                    LOG.error(msg)
+        return volume_metrics
+
+    def get_port_metrics(self, storage_id, selection, response):
+        pass
+
+    def get_controller_metrics(self, storage_id, selection, response):
+        pass

@@ -60,3 +60,90 @@ CONTROLLER_STATUS_MAP = {
     "lost communication": constants.ControllerStatus.OFFLINE,
     "unknown": constants.ControllerStatus.UNKNOWN
 }
+
+IOPS_DESCRIPTION = {
+    "name": "iops",
+    "unit": "IOPS",
+    "description": "Input/output operations per second"
+}
+READ_IOPS_DESCRIPTION = {
+    "name": "readIops",
+    "unit": "IOPS",
+    "description": "Read input/output operations per second"
+}
+WRITE_IOPS_DESCRIPTION = {
+    "name": "writeIops",
+    "unit": "IOPS",
+    "description": "Write input/output operations per second"
+}
+THROUGHPUT_DESCRIPTION = {
+    "name": "throughput",
+    "unit": "MB/s",
+    "description": "Represents how much data is "
+                   "successfully transferred in MB/s"
+}
+READ_THROUGHPUT_DESCRIPTION = {
+    "name": "readThroughput",
+    "unit": "MB/s",
+    "description": "Represents how much data read is "
+                   "successfully transferred in MB/s"
+}
+WRITE_THROUGHPUT_DESCRIPTION = {
+    "name": "writeThroughput",
+    "unit": "MB/s",
+    "description": "Represents how much data write is "
+                   "successfully transferred in MB/s"
+}
+RESPONSE_TIME_DESCRIPTION = {
+    "name": "responseTime",
+    "unit": "ms",
+    "description": "Average time taken for an IO "
+                   "operation in ms"
+}
+CACHE_HIT_RATIO_DESCRIPTION = {
+    "name": "cacheHitRatio",
+    "unit": "%",
+    "description": "Percentage of io that are cache hits"
+}
+READ_CACHE_HIT_RATIO_DESCRIPTION = {
+    "name": "readCacheHitRatio",
+    "unit": "%",
+    "description": "Percentage of read ops that are cache hits"
+}
+WRITE_CACHE_HIT_RATIO_DESCRIPTION = {
+    "name": "writeCacheHitRatio",
+    "unit": "%",
+    "description": "Percentage of write ops that are cache hits"
+}
+IO_SIZE_DESCRIPTION = {
+    "name": "ioSize",
+    "unit": "KB",
+    "description": "The average size of IO requests in KB"
+}
+READ_IO_SIZE_DESCRIPTION = {
+    "name": "ioSizeRead",
+    "unit": "KB",
+    "description": "The average size of read IO requests in KB"
+}
+WRITE_IO_SIZE_DESCRIPTION = {
+    "name": "ioSizeWrite",
+    "unit": "KB",
+    "description": "The average size of write IO requests in KB"
+}
+
+VOLUME_CAP = {
+    "iops": IOPS_DESCRIPTION,
+    "readIops": READ_IOPS_DESCRIPTION,
+    "writeIops": WRITE_IOPS_DESCRIPTION,
+    "throughput": THROUGHPUT_DESCRIPTION,
+    "readThroughput": READ_THROUGHPUT_DESCRIPTION,
+    "writeThroughput": WRITE_THROUGHPUT_DESCRIPTION,
+    "responseTime": RESPONSE_TIME_DESCRIPTION,
+    "cacheHitRatio": CACHE_HIT_RATIO_DESCRIPTION,
+    "readCacheHitRatio": READ_CACHE_HIT_RATIO_DESCRIPTION,
+    "writeCacheHitRatio": WRITE_CACHE_HIT_RATIO_DESCRIPTION,
+    "ioSize": IO_SIZE_DESCRIPTION,
+    "readIoSize": READ_IO_SIZE_DESCRIPTION,
+    "writeIoSize": WRITE_IO_SIZE_DESCRIPTION,
+}
+

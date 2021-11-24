@@ -147,3 +147,17 @@ class RestHandler(RestClient):
         url = '%s/engines/*/directors/*/hardware/ports/*' % consts.BASE_CONTEXT
         response = self.get_rest_info(url)
         return response
+
+    def get_monitoring_director_monitor_resp(self):
+        url = '%s/monitoring/directors/*/monitors' % consts.BASE_CONTEXT
+        response = self.get_rest_info(url)
+        return response
+
+    def get_monitor_get_stats_resp(self, perpetual_files):
+        url = '%s/monitor+get-stats' % consts.BASE_CONTEXT
+        files = ','.join(perpetual_files)
+        args = '--monitors %s' % files
+        data = {"args": args}
+        response = self.get_rest_info(url, data, method='POST')
+        return response
+
