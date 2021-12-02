@@ -92,7 +92,7 @@ class VnxBlockStorDriver(driver.StorageDriver):
         return {
             'is_historic': False,
             'resource_metrics': {
-                constants.ResourceType.STORAGE_POOL: consts.CONTROLLER_CAP,
+                constants.ResourceType.CONTROLLER: consts.CONTROLLER_CAP,
                 constants.ResourceType.VOLUME: consts.VOLUME_CAP,
                 constants.ResourceType.PORT: consts.PORT_CAP,
                 constants.ResourceType.DISK: consts.DISK_CAP
