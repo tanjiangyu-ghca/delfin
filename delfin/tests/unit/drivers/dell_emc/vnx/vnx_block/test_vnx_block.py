@@ -999,7 +999,7 @@ class TestVnxBlocktorageDriver(TestCase):
         driver = create_driver()
         cap = driver.get_capabilities(context)
         self.assertIsNotNone(cap.get('resource_metrics'))
-        self.assertIsNotNone(cap.get('resource_metrics').get('storagePool'))
+        self.assertIsNotNone(cap.get('resource_metrics').get('controller'))
         self.assertIsNotNone(cap.get('resource_metrics').get('volume'))
         self.assertIsNotNone(cap.get('resource_metrics').get('port'))
         self.assertIsNotNone(cap.get('resource_metrics').get('disk'))
