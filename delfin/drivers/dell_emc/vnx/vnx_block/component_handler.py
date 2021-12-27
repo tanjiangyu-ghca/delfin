@@ -21,6 +21,7 @@ from oslo_utils import units
 from delfin import exception
 from delfin.common import constants
 from delfin.drivers.dell_emc.vnx.vnx_block import consts
+from delfin.drivers.utils.tools import Tools
 
 LOG = log.getLogger(__name__)
 
@@ -678,3 +679,16 @@ class ComponentHandler(object):
                     metrics.extend(metric_model_list)
 
         return metrics
+
+    def get_latest_perf_timestamp(self):
+        latest_time = 0
+        sp_info = self.navi_handler.get_sp_detail(None)
+        if sp_info and sp_info.get('system_date') \
+                and sp_info.get('system_time'):
+            latest_time_str = '%s %s' % (sp_info.get('system_date'),
+                                         sp_info.get('system_time'))
+            tools = Tools()
+            latest_time = tools.time_str_to_timestamp(latest_time_str,
+                                                      consts.TIME_PATTERN)
+
+        return latest_time

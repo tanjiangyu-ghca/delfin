@@ -98,3 +98,6 @@ class VnxBlockStorDriver(driver.StorageDriver):
                 constants.ResourceType.DISK: consts.DISK_CAP
             }
         }
+
+    def get_latest_perf_timestamp(self, context):
+        return self.com_handler.get_latest_perf_timestamp()
