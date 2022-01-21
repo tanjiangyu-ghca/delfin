@@ -57,3 +57,4 @@ class InitiatorType:
     FC_INITIATOR_DESCRIPTION = 'FC Initiator'
     IB_INITIATOR_DESCRIPTION = 'IB Initiator'
     UNKNOWN_INITIATOR_DESCRIPTION = 'Unknown Initiator'
+
