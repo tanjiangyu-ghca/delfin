@@ -292,7 +292,7 @@ LIST_ERROR = """
 LIST_HOST_INITIATORS = """
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <RESPONSE VERSION="L100" REQUEST="show initiators">
-<COMP G="0" P="3"/> 
+<COMP G="0" P="3"/>
  <OBJECT basetype="initiator" name="initiator" oid="3" format="rows">
     <PROPERTY name="durable-id">I0</PROPERTY>
     <PROPERTY name="nickname">FC-port3</PROPERTY>
@@ -313,7 +313,7 @@ LIST_HOST_INITIATORS = """
 LIST_HOST_GROUPS = """
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <RESPONSE VERSION="L100" REQUEST="show host-groups">
-<COMP G="0" P="1"/> 
+<COMP G="0" P="1"/>
  <OBJECT basetype="host-group" name="host-group" oid="1" format="rows">
     <PROPERTY name="durable-id" >HGU</PROPERTY>
     <PROPERTY name="name">-ungrouped-</PROPERTY>
@@ -328,7 +328,7 @@ LIST_HOST_GROUPS = """
     <PROPERTY name="host-group">UNGROUPEDHOSTS</PROPERTY>
     <PROPERTY name="group-key" >HGU</PROPERTY>
   </OBJECT>
-<COMP G="2" P="3"/>  
+<COMP G="2" P="3"/>
 <OBJECT basetype="initiator" name="initiator" oid="3" format="rows">
     <PROPERTY name="durable-id" >I2</PROPERTY>
     <PROPERTY name="nickname" >FC-port1</PROPERTY>
@@ -343,7 +343,7 @@ LIST_HOST_GROUPS = """
     <PROPERTY name="host-port-bits-a" >0</PROPERTY>
     <PROPERTY name="host-port-bits-b" >0</PROPERTY>
   </OBJECT>
-<COMP G="0" P="4"/>  
+<COMP G="0" P="4"/>
 <OBJECT basetype="host-group" name="host-group" oid="4" format="rows">
     <PROPERTY name="durable-id" >HG0</PROPERTY>
     <PROPERTY name="name">HostGroup1</PROPERTY>
@@ -358,7 +358,7 @@ LIST_HOST_GROUPS = """
     <PROPERTY name="host-group">00c0ff26c2360000223a9f6101010000</PROPERTY>
     <PROPERTY name="group-key">HG0</PROPERTY>
   </OBJECT>
-<COMP G="5" P="6"/> 
+<COMP G="5" P="6"/>
  <OBJECT basetype="initiator" name="initiator" oid="6" format="rows">
     <PROPERTY name="durable-id" >I1</PROPERTY>
     <PROPERTY name="nickname" >FC-port2</PROPERTY>
@@ -373,7 +373,7 @@ LIST_HOST_GROUPS = """
     <PROPERTY name="host-port-bits-a">0</PROPERTY>
     <PROPERTY name="host-port-bits-b" >0</PROPERTY>
   </OBJECT>
-<COMP G="5" P="7"/>  
+<COMP G="5" P="7"/>
 <OBJECT basetype="initiator" name="initiator" oid="7" format="rows">
     <PROPERTY name="durable-id" >I0</PROPERTY>
     <PROPERTY name="nickname" >FC-port3</PROPERTY>
@@ -388,7 +388,7 @@ LIST_HOST_GROUPS = """
     <PROPERTY name="host-port-bits-a">0</PROPERTY>
     <PROPERTY name="host-port-bits-b" >0</PROPERTY>
   </OBJECT>
-<COMP G="0" P="8"/>  
+<COMP G="0" P="8"/>
 <OBJECT basetype="host-group" name="host-group" oid="8" format="rows">
     <PROPERTY name="durable-id" >HG2</PROPERTY>
     <PROPERTY name="name" >rac</PROPERTY>
@@ -418,7 +418,7 @@ LIST_HOST_GROUPS = """
     <PROPERTY name="host-port-bits-a">0</PROPERTY>
     <PROPERTY name="host-port-bits-b" >0</PROPERTY>
   </OBJECT>
-<COMP G="9" P="11"/> 
+<COMP G="9" P="11"/>
  <OBJECT basetype="initiator" name="initiator" oid="11" format="rows">
     <PROPERTY name="durable-id" >I5</PROPERTY>
     <PROPERTY name="nickname" >rac01_02</PROPERTY>
@@ -433,7 +433,7 @@ LIST_HOST_GROUPS = """
     <PROPERTY name="host-port-bits-a">0</PROPERTY>
     <PROPERTY name="host-port-bits-b" >0</PROPERTY>
   </OBJECT>
-<COMP G="8" P="12"/>  
+<COMP G="8" P="12"/>
 <OBJECT basetype="host" name="host" oid="12" format="rows">
     <PROPERTY name="durable-id" >H3</PROPERTY>
     <PROPERTY name="name" >rac02</PROPERTY>
@@ -442,7 +442,7 @@ LIST_HOST_GROUPS = """
     <PROPERTY name="host-group">00c0ff26c4ea00008c81245b01010000</PROPERTY>
     <PROPERTY name="group-key">HG2</PROPERTY>
   </OBJECT>
-<COMP G="12" P="13"/>  
+<COMP G="12" P="13"/>
 <OBJECT basetype="initiator" name="initiator" oid="13" format="rows">
     <PROPERTY name="durable-id" >I3</PROPERTY>
     <PROPERTY name="nickname" >rac02_01</PROPERTY>
@@ -457,7 +457,7 @@ LIST_HOST_GROUPS = """
     <PROPERTY name="host-port-bits-a">0</PROPERTY>
     <PROPERTY name="host-port-bits-b" >0</PROPERTY>
   </OBJECT>
-<COMP G="12" P="14"/>  
+<COMP G="12" P="14"/>
 <OBJECT basetype="initiator" name="initiator" oid="14" format="rows">
     <PROPERTY name="durable-id" >I4</PROPERTY>
     <PROPERTY name="nickname" >rac02_02</PROPERTY>
@@ -472,7 +472,7 @@ LIST_HOST_GROUPS = """
     <PROPERTY name="host-port-bits-a">0</PROPERTY>
     <PROPERTY name="host-port-bits-b" >0</PROPERTY>
   </OBJECT>
-<COMP G="0" P="15"/> 
+<COMP G="0" P="15"/>
  <OBJECT basetype="host" name="host" oid="15" format="rows">
     <PROPERTY name="durable-id" >HU</PROPERTY>
     <PROPERTY name="name" >-nohost-</PROPERTY>
@@ -481,7 +481,7 @@ LIST_HOST_GROUPS = """
     <PROPERTY name="host-group" >UNGROUPEDHOSTS</PROPERTY>
     <PROPERTY name="group-key">HGU</PROPERTY>
   </OBJECT>
-<COMP G="15" P="16"/>  
+<COMP G="15" P="16"/>
 <OBJECT basetype="initiator" name="initiator" oid="16" format="rows">
     <PROPERTY name="durable-id" >I2</PROPERTY>
     <PROPERTY name="nickname" >FC-port1</PROPERTY>
@@ -501,7 +501,7 @@ LIST_HOST_GROUPS = """
 LIST_HOST = """
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <RESPONSE VERSION="L100" REQUEST="show host-groups">
-<COMP G="4" P="5"/>  
+<COMP G="4" P="5"/>
 <OBJECT basetype="host" name="host" oid="5" format="rows">
     <PROPERTY name="durable-id" >H1</PROPERTY>
     <PROPERTY name="name" >Host1</PROPERTY>
@@ -515,7 +515,7 @@ LIST_HOST = """
 LIST_VOLUME_GROUPS = """
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <RESPONSE VERSION="L100" REQUEST="show volume-groups">
-<COMP G="0" P="4"/>  
+<COMP G="0" P="4"/>
 <OBJECT basetype="volume-groups" name="volume-groups" oid="4" format="rows">
     <PROPERTY name="durable-id">VG6</PROPERTY>
     <PROPERTY name="group-name" >VGroup1</PROPERTY>
@@ -524,7 +524,7 @@ LIST_VOLUME_GROUPS = """
     <PROPERTY name="type-numeric">3672</PROPERTY>
     <PROPERTY name="member-count">2</PROPERTY>
   </OBJECT>
-<COMP G="4" P="5"/> 
+<COMP G="4" P="5"/>
  <OBJECT basetype="volumes" name="volume" oid="5" format="rows">
     <PROPERTY name="durable-id">V0</PROPERTY>
     <PROPERTY name="virtual-disk-name" >A</PROPERTY>
@@ -579,7 +579,7 @@ LIST_VOLUME_GROUPS = """
     <PROPERTY name="volume-group">00c0ff26c4ea0000ab2b9f6101000000</PROPERTY>
     <PROPERTY name="group-key" >VG6</PROPERTY>
   </OBJECT>
-<COMP G="4" P="6"/>  
+<COMP G="4" P="6"/>
 <OBJECT basetype="volumes" name="volume" oid="6" format="rows">
     <PROPERTY name="durable-id">V1</PROPERTY>
     <PROPERTY name="virtual-disk-name" >A</PROPERTY>
@@ -618,7 +618,7 @@ LIST_VOLUME_GROUPS = """
     <PROPERTY name="volume-parent"></PROPERTY>
     <PROPERTY name="snap-pool"></PROPERTY>
     <PROPERTY name="replication-set" ></PROPERTY>
-    <PROPERTY name="attributes" ></PROPERTY>    
+    <PROPERTY name="attributes" ></PROPERTY>
     <PROPERTY name="wwn" >600C0FF00026C4EA0A81546101000000</PROPERTY>
     <PROPERTY name="progress">0%</PROPERTY>
     <PROPERTY name="progress-numeric">0</PROPERTY>
@@ -639,13 +639,13 @@ LIST_VOLUME_GROUPS = """
 LIST_MAPS_ALL = """
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <RESPONSE VERSION="L100" REQUEST="show maps">
-<COMP G="0" P="1"/> 
+<COMP G="0" P="1"/>
  <OBJECT basetype="volume-group-view">
     <PROPERTY name="durable-id">VG5</PROPERTY>
     <PROPERTY name="serial-number">00c0ff26c4ea0000e22b9f6101000000</PROPERTY>
     <PROPERTY name="group-name">VGroup2.*</PROPERTY>
   </OBJECT>
-<COMP G="1" P="2"/>  
+<COMP G="1" P="2"/>
 <OBJECT basetype="volume-group-view-mappings" >
     <PROPERTY name="durable-id" >VG5_I3</PROPERTY>
     <PROPERTY name="parent-id">VG5</PROPERTY>
@@ -657,25 +657,25 @@ LIST_MAPS_ALL = """
     <PROPERTY name="nickname">rac02_01</PROPERTY>
     <PROPERTY name="host-profile">Standard</PROPERTY>
   </OBJECT>
-<COMP G="2" P="3"/>  
+<COMP G="2" P="3"/>
 <OBJECT basetype="volume-group-view-mappings-luns">
     <PROPERTY name="volume-name">Vol0003</PROPERTY>
     <PROPERTY name="volume-serial">00c0ff26c4ea000082537a6101000000</PROPERTY>
     <PROPERTY name="lun">0</PROPERTY>
   </OBJECT>
-<COMP G="2" P="4"/> 
+<COMP G="2" P="4"/>
 <OBJECT basetype="volume-group-view-mappings-luns">
     <PROPERTY name="volume-name" >Vol0004</PROPERTY>
     <PROPERTY name="volume-serial" >00c0ff26c4ea000085537a6101000000</PROPERTY>
     <PROPERTY name="lun">2</PROPERTY>
   </OBJECT>
-<COMP G="1" P="5"/> 
+<COMP G="1" P="5"/>
  <OBJECT basetype="volume-view">
     <PROPERTY name="durable-id">V3</PROPERTY>
     <PROPERTY name="volume-serial" >00c0ff26c4ea000085537a6101000000</PROPERTY>
     <PROPERTY name="volume-name">Vol0004</PROPERTY>
   </OBJECT>
-<COMP G="5" P="6"/> 
+<COMP G="5" P="6"/>
  <OBJECT basetype="volume-view-mappings" >
     <PROPERTY name="durable-id" >V3_I0</PROPERTY>
     <PROPERTY name="parent-id">V3</PROPERTY>
@@ -694,7 +694,7 @@ LIST_MAPS_ALL = """
     <PROPERTY name="volume-serial">00c0ff26c4ea0000fa80546101000000</PROPERTY>
     <PROPERTY name="volume-name" >Vol0001</PROPERTY>
   </OBJECT>
-<COMP G="7" P="8"/>  
+<COMP G="7" P="8"/>
 <OBJECT basetype="volume-view-mappings">
     <PROPERTY name="durable-id" key="true">V0_I1</PROPERTY>
     <PROPERTY name="parent-id">V0</PROPERTY>
@@ -707,13 +707,13 @@ LIST_MAPS_ALL = """
     <PROPERTY name="nickname">FC-port2</PROPERTY>
     <PROPERTY name="host-profile">HPUX</PROPERTY>
   </OBJECT>
-<COMP G="0" P="9"/>  
+<COMP G="0" P="9"/>
 <OBJECT basetype="volume-view">
     <PROPERTY name="durable-id" >V1</PROPERTY>
     <PROPERTY name="volume-serial">00c0ff26c4ea00000a81546101000000</PROPERTY>
     <PROPERTY name="volume-name">Vol0002</PROPERTY>
   </OBJECT>
-<COMP G="9" P="10"/>  
+<COMP G="9" P="10"/>
 <OBJECT basetype="volume-view-mappings">
     <PROPERTY name="durable-id">V1_H4</PROPERTY>
     <PROPERTY name="parent-id" >V1</PROPERTY>
