@@ -5,6 +5,7 @@ import six
 from oslo_log import log as logging
 from operator import itemgetter
 from itertools import groupby
+
 from delfin import exception
 from delfin.common import constants, alert_util
 from delfin.drivers.utils.ssh_client import SSHPool
@@ -191,8 +192,7 @@ class SSHHandler(object):
 
     def list_storage_controller(self, storage_id):
         try:
-            controller_info = self.ssh_pool\
-                .do_exec('show controllers')
+            controller_info = self.ssh_pool.do_exec('show controllers')
             controller_detail = self.handle_xml_to_json(
                 controller_info, 'controllers')
             controller_arr = []
@@ -479,3 +479,207 @@ class SSHHandler(object):
                 for child in children.iter('PROPERTY'):
                     msg[child.get('name')] = child.text
         return msg
+
+    def list_storage_host_initiators(self, storage_id):
+        try:
+            initiator_list = []
+            host_groups_info = self.ssh_pool.do_exec("show initiators")
+            host_groups_json = self.handle_xml_to_json(host_groups_info,
+                                                       "initiator")
+            type_switch = {
+                consts.InitiatorType.ISCSI_INITIATOR_TYPE:
+                    consts.InitiatorType.ISCSI_INITIATOR_DESCRIPTION,
+                consts.InitiatorType.FC_INITIATOR_TYPE:
+                    consts.InitiatorType.FC_INITIATOR_DESCRIPTION,
+                consts.InitiatorType.SAS_INITIATOR_TYPE:
+                    consts.InitiatorType.IB_INITIATOR_DESCRIPTION,
+            }
+            if host_groups_json:
+                for initiator in host_groups_json:
+                    description = type_switch.get(
+                        initiator.get('host-bus-type-numeric'),
+                        consts.InitiatorType.UNKNOWN_INITIATOR_DESCRIPTION)
+                    initiator_item = {
+                        "name": initiator.get('nickname'),
+                        "description": description,
+                        "alias": initiator.get('durable-id'),
+                        "storage_id": storage_id,
+                        "native_storage_host_initiator_id":
+                            initiator.get('durable-id'),
+                        "wwn": initiator.get('id'),
+                        "status": constants.InitiatorStatus.ONLINE,
+                        "native_storage_host_id": initiator.get('host-id')
+                    }
+                    initiator_list.append(initiator_item)
+            return initiator_list
+        except Exception:
+            LOG.error("Failed to get initiators from msa")
+            raise
+
+    def list_storage_hosts(self, storage_id):
+        try:
+            hosts_info = self.ssh_pool.do_exec('show host-groups')
+            host_list = []
+            hosts = self.handle_xml_to_json(hosts_info, 'host')
+            for host in hosts:
+                status = constants.HostStatus.NORMAL
+                os_type = constants.HostOSTypes.HP_UX
+                host_member_count = int(host.get('member-count'))
+                if host_member_count > 0:
+                    host_dict = {
+                        "name": host.get('name'),
+                        "description": host.get('durable-id'),
+                        "storage_id": storage_id,
+                        "native_storage_host_id": host.get('serial-number'),
+                        "os_type": os_type,
+                        "status": status
+                    }
+                    host_list.append(host_dict)
+            return host_list
+        except Exception:
+            LOG.error("Failed to get host metrics from msa")
+            raise
+
+    def list_storage_host_groups(self, storage_id):
+        try:
+            host_groups_info = self.ssh_pool.do_exec('show host-groups')
+            storage_host_groups_result = {}
+            host_group_list = []
+            storage_host_grp_relation_list = []
+            host_groups = self.handle_xml_to_json(
+                host_groups_info, 'host-group')
+            host_info_list = self.handle_xml_to_json(host_groups_info, 'host')
+            if host_groups:
+                for host_group in host_groups:
+                    hosts_str = None
+                    storage_host_group_id = host_group.get('serial-number')
+                    if host_info_list:
+                        for host_info in host_info_list:
+                            host_id = host_info.get('durable-id')
+                            host_group_id = host_info.get('host-group')
+                            if host_group_id == storage_host_group_id:
+                                if hosts_str:
+                                    hosts_str = "{0},{1}".format(hosts_str,
+                                                                 host_id)
+                                else:
+                                    hosts_str = "{0}".format(host_id)
+                                storage_host_group_relation = {
+                                    'storage_id': storage_id,
+                                    'native_storage_host_group_id':
+                                        storage_host_group_id,
+                                    'native_storage_host_id': host_id
+                                }
+                                storage_host_grp_relation_list.\
+                                    append(storage_host_group_relation)
+                    host_group_map = {
+                        "name": host_group.get('name'),
+                        "description": host_group.get('durable-id'),
+                        "storage_id": storage_id,
+                        "native_storage_host_group_id": storage_host_group_id,
+                        "storage_hosts": hosts_str
+                    }
+                    host_group_list.append(host_group_map)
+                storage_host_groups_result = {
+                    'storage_host_groups': host_group_list,
+                    'storage_host_grp_host_rels':
+                        storage_host_grp_relation_list
+                }
+            return storage_host_groups_result
+        except Exception:
+            LOG.error("Failed to get host_groups from msa")
+            raise
+
+    def list_volume_groups(self, storage_id):
+        try:
+            volume_group_list = []
+            volume_group_relation_list = []
+            volume_group_result = {}
+            volume_groups_info = self.ssh_pool.do_exec('show volume-groups')
+            volume_groups_json = self.handle_xml_to_json(
+                volume_groups_info, 'volume-groups')
+            volumes_json = self.handle_xml_to_json(
+                volume_groups_info, 'volumes')
+            if volume_groups_json:
+                for volume_group in volume_groups_json:
+                    volumes_str = None
+                    durable_id = volume_group.get('durable-id')
+                    if volumes_json:
+                        for volume_info in volumes_json:
+                            group_key = volume_info.get('group-key')
+                            volume_id = volume_info.get('durable-id')
+                            if group_key == durable_id:
+                                if volumes_str:
+                                    volumes_str = "{0},{1}".format(
+                                        volumes_str, volume_id)
+                                else:
+                                    volumes_str = "{0}".format(volume_id)
+                                volume_group_relation = {
+                                    'storage_id': storage_id,
+                                    'native_volume_group_id': durable_id,
+                                    'native_volume_id': volume_id
+                                }
+                                volume_group_relation_list.\
+                                    append(volume_group_relation)
+                    volume_groups_map = {
+                        "name": volume_group.get('group-name'),
+                        "description": volume_group.get('durable-id'),
+                        "storage_id": storage_id,
+                        "native_volume_group_id": durable_id,
+                        "volumes": volumes_str
+                    }
+                    volume_group_list.append(volume_groups_map)
+                volume_group_result = {
+                    'volume_groups': volume_group_list,
+                    'vol_grp_vol_rels': volume_group_relation_list
+                }
+            return volume_group_result
+        except Exception:
+            LOG.error("Failed to get vol_groups from msa")
+            raise
+
+    def list_masking_views(self, storage_id):
+        try:
+            views_list = []
+            storage_view_info = self.ssh_pool.do_exec('show maps all ')
+            storage_host_view = self.handle_xml_to_json(
+                storage_view_info, 'volume-view-mappings')
+            storage_host_volume_groups_view = self.handle_xml_to_json(
+                storage_view_info, 'volume-group-view-mappings')
+            storage_host_view += storage_host_volume_groups_view
+            storage_port_list = self.list_storage_ports(storage_id)
+            if storage_host_view:
+                for host_view in storage_host_view:
+                    mapped_id = host_view.get('mapped-id')
+                    native_masking_view_id = host_view.get('durable-id')
+                    volume_id = host_view.get('parent-id')
+                    port_number = host_view.get('ports')
+                    view_name = host_view.get('nickname')
+                    native_port_group_id = None
+                    if port_number:
+                        port_codes = port_number.split(',')
+                        for port_code in port_codes:
+                            if storage_port_list:
+                                for port in storage_port_list:
+                                    port_name = port.get('name')
+                                    if port_code in port_name:
+                                        if native_port_group_id:
+                                            native_port_group_id = "{0},{1}".\
+                                                format(native_port_group_id,
+                                                       port_name)
+                                        else:
+                                            native_port_group_id = "{0}"\
+                                                .format(port_name)
+                    view_map = {
+                        "name": view_name,
+                        "description": view_name,
+                        "storage_id": storage_id,
+                        "native_masking_view_id": native_masking_view_id,
+                        "native_port_group_id": native_port_group_id,
+                        "native_volume_group_id": volume_id,
+                        "native_storage_host_id": mapped_id
+                    }
+                    views_list.append(view_map)
+            return views_list
+        except Exception:
+            LOG.error("Failed to get view metrics from msa")
+            raise
