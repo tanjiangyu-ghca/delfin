@@ -1200,7 +1200,7 @@ class NetAppHandler(object):
                     'start_time': start_time,
                     'end_time': end_time,
                     'resource_id': fs_id,
-                    'resource_name':  fs['name'],
+                    'resource_name': fs['name'],
                     'resource_type': constants.ResourceType.FILESYSTEM
                 }
                 kwargs_list.append(kwargs)
