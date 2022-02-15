@@ -12,8 +12,11 @@
 # WarrayANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
 # License for the specific language governing permissions and limitations
 # under the License.
+import functools
 import re
 import time
+from asyncio import as_completed
+from concurrent.futures.thread import ThreadPoolExecutor
 
 import requests
 import six
@@ -1032,6 +1035,39 @@ class NetAppHandler(object):
             LOG.error(err_msg)
             raise exception.InvalidResults(err_msg)
 
+    @staticmethod
+    def future_callback(future, res_list):
+        if future and future.result():
+            res_list.append(future.result())
+
+    def performance_task(self, **kwargs):
+        json_info = self.do_rest_call(kwargs.get('rest_url'), None)
+        metrics = PerformanceHandler.get_perf_value(
+            metrics=kwargs.get('metrics'),
+            storage_id=kwargs.get('storage_id'),
+            start_time=kwargs.get('start_time'),
+            end_time=kwargs.get('end_time'),
+            data_info=json_info,
+            resource_id=kwargs.get('resource_id'),
+            resource_name=kwargs.get('resource_name'),
+            resource_type=kwargs.get('resource_type')
+        )
+        return metrics
+
+    def do_method_in_pool(self, kwargs_list):
+        res_list = []
+        with ThreadPoolExecutor(max_workers=4) as pool:
+            future_list = []
+            for kwargs in kwargs_list:
+                future = pool.submit(self.performance_task, **kwargs)
+                future_list.append(future)
+                future.add_done_callback(
+                    functools.partial(
+                        NetAppHandler.future_callback,
+                        res_list=res_list))
+            as_completed(future_list)
+            return res_list
+
     def collect_perf_metrics(self, storage_id,
                              resource_metrics, start_time, end_time):
         try:
@@ -1102,93 +1138,117 @@ class NetAppHandler(object):
     def get_pool_perf(self, metrics, storage_id, start_time, end_time):
         agg_info = self.ssh_pool.do_exec(
             constant.AGGREGATE_SHOW_DETAIL_COMMAND)
-        agg_map_list = []
-        pool_metrics = []
+        agg_map_list, pool_metrics, kwargs_list = [], [], []
         Tools.split_value_map_list(agg_info, agg_map_list, split=':')
         for agg_map in agg_map_list:
             if 'UUIDString' in agg_map:
                 uuid = agg_map['UUIDString']
-                json_info = self.do_rest_call(
-                    constant.POOL_PERF_URL % uuid, None)
-                pool_metrics.extend(
-                    PerformanceHandler.get_perf_value(
-                        metrics,
-                        storage_id,
-                        start_time,
-                        end_time,
-                        json_info,
-                        agg_map['UUIDString'],
-                        agg_map['Aggregate'],
-                        constants.ResourceType.STORAGE_POOL))
+                kwargs = {
+                    'rest_url': constant.POOL_PERF_URL % uuid,
+                    'metrics': metrics,
+                    'storage_id': storage_id,
+                    'start_time': start_time,
+                    'end_time': end_time,
+                    'resource_id': agg_map['UUIDString'],
+                    'resource_name': agg_map['Aggregate'],
+                    'resource_type': constants.ResourceType.STORAGE_POOL
+                }
+                kwargs_list.append(kwargs)
+        res_data = self.do_method_in_pool(kwargs_list)
+        for data in res_data:
+            pool_metrics.extend(data)
         return pool_metrics
 
     def get_volume_perf(self, metrics, storage_id, start_time, end_time):
         volume_info = \
             self.ssh_pool.do_exec(constant.LUN_SHOW_DETAIL_COMMAND)
-        volume_map_list = []
-        volume_metrics = []
+        volume_map_list, kwargs_list, volume_metrics = [], [], []
         Tools.split_value_map_list(volume_info, volume_map_list, split=':')
         for volume in volume_map_list:
             if 'LUNUUID' in volume:
                 uuid = volume['LUNUUID']
-                json_info = self.do_rest_call(
-                    constant.VOLUME_PERF_URL % uuid, None)
-                volume_metrics.extend(
-                    PerformanceHandler.get_perf_value(
-                        metrics, storage_id,
-                        start_time, end_time,
-                        json_info, volume['SerialNumber'],
-                        volume['LUNName'],
-                        constants.ResourceType.VOLUME))
+                kwargs = {
+                    'rest_url': constant.VOLUME_PERF_URL % uuid,
+                    'metrics': metrics,
+                    'storage_id': storage_id,
+                    'start_time': start_time,
+                    'end_time': end_time,
+                    'resource_id': volume['SerialNumber'],
+                    'resource_name': volume['LUNName'],
+                    'resource_type': constants.ResourceType.VOLUME
+                }
+                kwargs_list.append(kwargs)
+        res_data = self.do_method_in_pool(kwargs_list)
+        for data in res_data:
+            volume_metrics.extend(data)
         return volume_metrics
 
     def get_fs_perf(self, metrics, storage_id, start_time, end_time):
         fs_info = self.do_rest_call(
             constant.FS_INFO_URL, {})
-        fs_metrics = []
+        kwargs_list, fs_metrics = [], []
         for fs in fs_info:
             if 'uuid' in fs:
                 uuid = fs['uuid']
-                json_info = self.do_rest_call(
-                    constant.FS_PERF_URL % uuid, None)
                 fs_id = self.get_fs_id(
                     fs['svm']['name'], fs['name'])
-                fs_metrics.extend(
-                    PerformanceHandler.get_perf_value(
-                        metrics, storage_id, start_time,
-                        end_time, json_info, fs_id,
-                        fs['name'],
-                        constants.ResourceType.FILESYSTEM))
+                kwargs = {
+                    'rest_url': constant.FS_PERF_URL % uuid,
+                    'metrics': metrics,
+                    'storage_id': storage_id,
+                    'start_time': start_time,
+                    'end_time': end_time,
+                    'resource_id': fs_id,
+                    'resource_name': fs['name'],
+                    'resource_type': constants.ResourceType.FILESYSTEM
+                }
+                kwargs_list.append(kwargs)
+        res_data = self.do_method_in_pool(kwargs_list)
+        for data in res_data:
+            fs_metrics.extend(data)
         return fs_metrics
 
     def get_port_perf(self, metrics, storage_id, start_time, end_time):
         fc_port = self.do_rest_call(constant.FC_INFO_URL, None)
-        port_metrics = []
+        kwargs_list, port_metrics = [], []
         for fc in fc_port:
             if 'uuid' in fc:
                 uuid = fc['uuid']
-                json_info = self.do_rest_call(
-                    constant.FC_PERF_URL % uuid, None)
                 port_id = fc['node']['name'] + '_' + fc['name']
-                port_metrics.extend(
-                    PerformanceHandler.get_perf_value(
-                        metrics, storage_id,
-                        start_time, end_time,
-                        json_info, port_id,
-                        fc['name'], constants.ResourceType.PORT))
+                kwargs = {
+                    'rest_url': constant.FC_PERF_URL % uuid,
+                    'metrics': metrics,
+                    'storage_id': storage_id,
+                    'start_time': start_time,
+                    'end_time': end_time,
+                    'resource_id': port_id,
+                    'resource_name': fc['name'],
+                    'resource_type': constants.ResourceType.PORT
+                }
+                kwargs_list.append(kwargs)
+        res_data = self.do_method_in_pool(kwargs_list)
+        for data in res_data:
+            port_metrics.extend(data)
+        kwargs_list = []
         eth_port = self.do_rest_call(constant.ETH_INFO_URL, {})
         for eth in eth_port:
             if 'uuid' in eth:
                 uuid = eth['uuid']
-                json_info = self.do_rest_call(
-                    constant.ETH_PERF_URL % uuid, None)
                 port_id = eth['node']['name'] + '_' + eth['name']
-                port_metrics.extend(
-                    PerformanceHandler.get_perf_value(
-                        metrics, storage_id,
-                        start_time, end_time,
-                        json_info, port_id,
-                        eth['name'], constants.ResourceType.PORT))
+                kwargs = {
+                    'rest_url': constant.ETH_PERF_URL % uuid,
+                    'metrics': metrics,
+                    'storage_id': storage_id,
+                    'start_time': start_time,
+                    'end_time': end_time,
+                    'resource_id': port_id,
+                    'resource_name': eth['name'],
+                    'resource_type': constants.ResourceType.PORT
+                }
+                kwargs_list.append(kwargs)
+        res_data = self.do_method_in_pool(kwargs_list)
+        for data in res_data:
+            port_metrics.extend(data)
         return port_metrics
 
     def get_storage_version(self):
