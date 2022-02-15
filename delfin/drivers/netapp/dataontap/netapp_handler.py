@@ -1066,7 +1066,6 @@ class NetAppHandler(object):
                         NetAppHandler.future_callback,
                         res_list=res_list))
             as_completed(future_list)
-            pool.shutdown()
             return res_list
 
     def collect_perf_metrics(self, storage_id,
