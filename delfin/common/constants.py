@@ -39,9 +39,10 @@ class StoragePoolStatus(object):
     NORMAL = 'normal'
     OFFLINE = 'offline'
     ABNORMAL = 'abnormal'
+    DEGRADED = 'degraded'
     UNKNOWN = 'unknown'
 
-    ALL = (NORMAL, OFFLINE, ABNORMAL, UNKNOWN)
+    ALL = (NORMAL, OFFLINE, ABNORMAL, DEGRADED, UNKNOWN)
 
 
 class VolumeStatus(object):
@@ -49,16 +50,6 @@ class VolumeStatus(object):
     ERROR = 'error'
 
     ALL = (AVAILABLE, ERROR)
-
-
-class ControllerStatus(object):
-    NORMAL = 'normal'
-    OFFLINE = 'offline'
-    FAULT = 'fault'
-    DEGRADED = 'degraded'
-    UNKNOWN = 'unknown'
-
-    ALL = (NORMAL, OFFLINE, FAULT, DEGRADED, UNKNOWN)
 
 
 class StorageType(object):
@@ -242,54 +233,6 @@ class ShareProtocol(object):
     ALL = (CIFS, NFS, FTP, HDFS)
 
 
-class HostStatus(object):
-    NORMAL = 'normal'
-    OFFLINE = 'offline'
-    ABNORMAL = 'abnormal'
-    DEGRADED = 'degraded'
-
-    ALL = (NORMAL, OFFLINE, ABNORMAL, DEGRADED)
-
-
-class HostOSTypes(object):
-    LINUX = 'Linux'
-    WINDOWS = 'Windows'
-    SOLARIS = 'Solaris'
-    HP_UX = 'HP-UX'
-    AIX = 'AIX'
-    XEN_SERVER = 'XenServer'
-    VMWARE_ESX = 'VMware ESX'
-    LINUX_VIS = 'LINUX_VIS'
-    WINDOWS_SERVER_2012 = 'Windows Server 2012'
-    ORACLE_VM = 'Oracle VM'
-    OPEN_VMS = 'Open VMS'
-    MAC_OS = 'Mac OS'
-    UNKNOWN = 'Unknown'
-
-    ALL = (LINUX, WINDOWS, SOLARIS, HP_UX, AIX, XEN_SERVER, VMWARE_ESX,
-           LINUX_VIS, WINDOWS_SERVER_2012, ORACLE_VM, OPEN_VMS, MAC_OS,
-           UNKNOWN)
-
-
-class InitiatorStatus(object):
-    ONLINE = 'online'
-    OFFLINE = 'offline'
-    UNKNOWN = 'unknown'
-
-    ALL = (ONLINE, OFFLINE, UNKNOWN)
-
-
-class InitiatorType(object):
-    FC = 'fc'
-    ISCSI = 'iscsi'
-    NVME_OVER_ROCE = 'roce'
-    SAS = 'sas'
-    NVME_OVER_FABRIC = 'nvme-of'
-    UNKNOWN = 'unknown'
-
-    ALL = (FC, ISCSI, NVME_OVER_ROCE, SAS, NVME_OVER_FABRIC, UNKNOWN)
-
-
 # Enumerations for alert severity
 class Severity(object):
     FATAL = 'Fatal'
@@ -313,6 +256,27 @@ class Category(object):
 class ClearType(object):
     AUTOMATIC = 'Automatic'
     MANUAL = 'Manual'
+
+
+class ControllerStatus(object):
+    NORMAL = 'normal'
+    OFFLINE = 'offline'
+    FAULT = 'fault'
+    DEGRADED = 'degraded'
+    UNKNOWN = 'unknown'
+
+    ALL = (NORMAL, OFFLINE, FAULT, DEGRADED, UNKNOWN)
+
+
+class InitiatorType(object):
+    FC = 'fc'
+    ISCSI = 'iscsi'
+    NVME_OVER_ROCE = 'roce'
+    SAS = 'sas'
+    NVME_OVER_FABRIC = 'nvme-of'
+    UNKNOWN = 'unknown'
+
+    ALL = (FC, ISCSI, NVME_OVER_ROCE, SAS, NVME_OVER_FABRIC, UNKNOWN)
 
 
 # Enumerations for alert type based on X.733 Specification
@@ -439,3 +403,209 @@ class TelemetryJobStatus(object):
     FAILED_JOB_STATUS_SUCCESS = "Success"
     FAILED_JOB_STATUS_RETRYING = "Retrying"
     FAILED_JOB_STATUS_INIT = "Initialized"
+
+
+Metric = namedtuple('Metric', 'name unit description')
+
+
+class MetricUnit:
+    IOPS = 'IOPS'
+    MBS = 'MB/s'
+    MS = 'ms'
+    KB = 'KB'
+    PERCENTAGE = '%'
+
+    ALL = (IOPS, MBS, MS, KB, PERCENTAGE)
+
+
+class Metrics:
+    IOPS = Metric(name='iops',
+                  unit=MetricUnit.IOPS,
+                  description='Read/write operations per second')
+    READ_IOPS = Metric(name='readIops',
+                       unit=MetricUnit.IOPS,
+                       description='Read operations per second')
+    WRITE_IOPS = Metric(name='writeIops',
+                        unit=MetricUnit.IOPS,
+                        description='Write operations per second')
+    THROUGHPUT = Metric(name='throughput',
+                        unit=MetricUnit.MBS,
+                        description='Total data transferred per second')
+    READ_THROUGHPUT = Metric(name='readThroughput',
+                             unit=MetricUnit.MBS,
+                             description='Total read data transferred per '
+                                         'second')
+    WRITE_THROUGHPUT = Metric(name='writeThroughput',
+                              unit=MetricUnit.MBS,
+                              description='Total write data transferred per '
+                                          'second')
+    RESPONSE_TIME = Metric(name='responseTime',
+                           unit=MetricUnit.MS,
+                           description='Average time taken for an IO '
+                                       'operation in ms')
+    READ_RESPONSE_TIME = Metric(name='readResponseTime',
+                                unit=MetricUnit.MS,
+                                description='Read average time taken for an '
+                                            'IO operation in ms')
+    WRITE_RESPONSE_TIME = Metric(name='writeResponseTime',
+                                 unit=MetricUnit.MS,
+                                 description='Write average time taken for an '
+                                             'IO operation in ms')
+    IO_SIZE = Metric(name='ioSize',
+                     unit=MetricUnit.KB,
+                     description='The average size of IO requests in KB')
+    READ_IO_SIZE = Metric(name='readIoSize',
+                          unit=MetricUnit.KB,
+                          description='The average size of read IO requests '
+                                      'in KB')
+    WRITE_IO_SIZE = Metric(name='writeIoSize',
+                           unit=MetricUnit.KB,
+                           description='The average size of write IO requests '
+                                       'in KB')
+    CACHE_HIT_RATIO = Metric(name='cacheHitRatio',
+                             unit=MetricUnit.PERCENTAGE,
+                             description='Percentage of ops that are cache '
+                                         'hits')
+    READ_CACHE_HIT_RATIO = Metric(name='readCacheHitRatio',
+                                  unit=MetricUnit.PERCENTAGE,
+                                  description='Percentage of read ops that '
+                                              'are cache hits')
+    WRITE_CACHE_HIT_RATIO = Metric(name='writeCacheHitRatio',
+                                   unit=MetricUnit.PERCENTAGE,
+                                   description='Percentage of write ops that '
+                                               'are cache hits')
+    CPU_USAGE = Metric(name='cpuUsage',
+                       unit=MetricUnit.PERCENTAGE,
+                       description='Percentage of cpu usage.')
+
+
+class StorageMetric:
+    """Storage metrics"""
+    IOPS = Metrics.IOPS
+    READ_IOPS = Metrics.READ_IOPS
+    WRITE_IOPS = Metrics.WRITE_IOPS
+    THROUGHPUT = Metrics.THROUGHPUT
+    READ_THROUGHPUT = Metrics.READ_THROUGHPUT
+    WRITE_THROUGHPUT = Metrics.WRITE_THROUGHPUT
+    RESPONSE_TIME = Metrics.RESPONSE_TIME
+    READ_RESPONSE_TIME = Metrics.READ_RESPONSE_TIME
+    WRITE_RESPONSE_TIME = Metrics.WRITE_RESPONSE_TIME
+
+
+class StoragePoolMetric:
+    """Storage pool metrics"""
+    IOPS = Metrics.IOPS
+    READ_IOPS = Metrics.READ_IOPS
+    WRITE_IOPS = Metrics.WRITE_IOPS
+    THROUGHPUT = Metrics.THROUGHPUT
+    READ_THROUGHPUT = Metrics.READ_THROUGHPUT
+    WRITE_THROUGHPUT = Metrics.WRITE_THROUGHPUT
+    RESPONSE_TIME = Metrics.RESPONSE_TIME
+
+
+class VolumeMetric:
+    """Volume metrics"""
+    IOPS = Metrics.IOPS
+    READ_IOPS = Metrics.READ_IOPS
+    WRITE_IOPS = Metrics.WRITE_IOPS
+    THROUGHPUT = Metrics.THROUGHPUT
+    READ_THROUGHPUT = Metrics.READ_THROUGHPUT
+    WRITE_THROUGHPUT = Metrics.WRITE_THROUGHPUT
+    RESPONSE_TIME = Metrics.RESPONSE_TIME
+    READ_RESPONSE_TIME = Metrics.READ_RESPONSE_TIME
+    WRITE_RESPONSE_TIME = Metrics.WRITE_RESPONSE_TIME
+    IO_SIZE = Metrics.IO_SIZE
+    READ_IO_SIZE = Metrics.READ_IO_SIZE
+    WRITE_IO_SIZE = Metrics.WRITE_IO_SIZE
+    CACHE_HIT_RATIO = Metrics.CACHE_HIT_RATIO
+    READ_CACHE_HIT_RATIO = Metrics.READ_CACHE_HIT_RATIO
+    WRITE_CACHE_HIT_RATIO = Metrics.WRITE_CACHE_HIT_RATIO
+
+
+class ControllerMetric:
+    """Controller metrics"""
+    IOPS = Metrics.IOPS
+    READ_IOPS = Metrics.READ_IOPS
+    WRITE_IOPS = Metrics.WRITE_IOPS
+    THROUGHPUT = Metrics.THROUGHPUT
+    READ_THROUGHPUT = Metrics.READ_THROUGHPUT
+    WRITE_THROUGHPUT = Metrics.WRITE_THROUGHPUT
+    RESPONSE_TIME = Metrics.RESPONSE_TIME
+    CPU_USAGE = Metrics.CPU_USAGE
+
+
+class PortMetric:
+    """Port metrics"""
+    IOPS = Metrics.IOPS
+    READ_IOPS = Metrics.READ_IOPS
+    WRITE_IOPS = Metrics.WRITE_IOPS
+    THROUGHPUT = Metrics.THROUGHPUT
+    READ_THROUGHPUT = Metrics.READ_THROUGHPUT
+    WRITE_THROUGHPUT = Metrics.WRITE_THROUGHPUT
+    RESPONSE_TIME = Metrics.RESPONSE_TIME
+
+
+class DiskMetric:
+    """Disk metrics"""
+    IOPS = Metrics.IOPS
+    READ_IOPS = Metrics.READ_IOPS
+    WRITE_IOPS = Metrics.WRITE_IOPS
+    THROUGHPUT = Metrics.THROUGHPUT
+    READ_THROUGHPUT = Metrics.READ_THROUGHPUT
+    WRITE_THROUGHPUT = Metrics.WRITE_THROUGHPUT
+    RESPONSE_TIME = Metrics.RESPONSE_TIME
+
+
+class FileSystemMetric:
+    """File system metrics"""
+    IOPS = Metrics.IOPS
+    READ_IOPS = Metrics.READ_IOPS
+    WRITE_IOPS = Metrics.WRITE_IOPS
+    THROUGHPUT = Metrics.THROUGHPUT
+    READ_THROUGHPUT = Metrics.READ_THROUGHPUT
+    WRITE_THROUGHPUT = Metrics.WRITE_THROUGHPUT
+    READ_RESPONSE_TIME = Metrics.READ_RESPONSE_TIME
+    WRITE_RESPONSE_TIME = Metrics.WRITE_RESPONSE_TIME
+    IO_SIZE = Metrics.IO_SIZE
+    READ_IO_SIZE = Metrics.READ_IO_SIZE
+    WRITE_IO_SIZE = Metrics.WRITE_IO_SIZE
+
+
+SNMP_SUPPORTED_MODELS = ('vsp', '3par', 'cmode', 'msa', 'hnas')
+
+
+class HostStatus(object):
+    NORMAL = 'normal'
+    OFFLINE = 'offline'
+    ABNORMAL = 'abnormal'
+    DEGRADED = 'degraded'
+
+    ALL = (NORMAL, OFFLINE, ABNORMAL, DEGRADED)
+
+
+class HostOSTypes(object):
+    LINUX = 'Linux'
+    WINDOWS = 'Windows'
+    SOLARIS = 'Solaris'
+    HP_UX = 'HP-UX'
+    AIX = 'AIX'
+    XEN_SERVER = 'XenServer'
+    VMWARE_ESX = 'VMware ESX'
+    LINUX_VIS = 'LINUX_VIS'
+    WINDOWS_SERVER_2012 = 'Windows Server 2012'
+    ORACLE_VM = 'Oracle VM'
+    OPEN_VMS = 'Open VMS'
+    MAC_OS = 'Mac OS'
+    UNKNOWN = 'Unknown'
+
+    ALL = (LINUX, WINDOWS, SOLARIS, HP_UX, AIX, XEN_SERVER, VMWARE_ESX,
+           LINUX_VIS, WINDOWS_SERVER_2012, ORACLE_VM, OPEN_VMS, MAC_OS,
+           UNKNOWN)
+
+
+class InitiatorStatus(object):
+    ONLINE = 'online'
+    OFFLINE = 'offline'
+    UNKNOWN = 'unknown'
+
+    ALL = (ONLINE, OFFLINE, UNKNOWN)
