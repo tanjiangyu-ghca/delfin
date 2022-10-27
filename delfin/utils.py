@@ -18,16 +18,13 @@
 
 """Utilities and helper functions."""
 
-import contextlib
 import functools
 import inspect
 import os
 import pyclbr
 import random
 import re
-import shutil
 import sys
-import tempfile
 import threading
 
 from eventlet import pools
@@ -123,17 +120,6 @@ class SSHPool(pools.Pool):
         elif self.password:
             look_for_keys = False
         try:
-            LOG.debug("ssh.connect: ip: %s, port: %s, username: %s, "
-                      "password: %s, key_filename: %s, look_for_keys: %s, "
-                      "timeout: %s, banner_timeout: %s",
-                      self.ip,
-                      self.port,
-                      self.login,
-                      self.password,
-                      self.path_to_private_key,
-                      look_for_keys,
-                      self.conn_timeout,
-                      self.conn_timeout)
             ssh.connect(self.ip,
                         port=self.port,
                         username=self.login,
@@ -293,7 +279,7 @@ def check_string_length(value, name, min_length=0, max_length=None,
         strutils.check_string_length(value, name=name,
                                      min_length=min_length,
                                      max_length=max_length)
-    except(ValueError, TypeError) as exc:
+    except (ValueError, TypeError) as exc:
         raise exception.InvalidInput(exc)
 
     if not allow_all_spaces and value.isspace():
@@ -308,18 +294,6 @@ def service_is_up(service):
     tdelta = timeutils.utcnow() - last_heartbeat
     elapsed = tdelta.total_seconds()
     return abs(elapsed) <= CONF.service_down_time
-
-
-@contextlib.contextmanager
-def tempdir(**kwargs):
-    tmpdir = tempfile.mkdtemp(**kwargs)
-    try:
-        yield tmpdir
-    finally:
-        try:
-            shutil.rmtree(tmpdir)
-        except OSError as e:
-            LOG.debug('Could not remove tmpdir: %s', e)
 
 
 def walk_class_hierarchy(clazz, encountered=None):
