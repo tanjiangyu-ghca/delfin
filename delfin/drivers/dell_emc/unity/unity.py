@@ -72,10 +72,10 @@ class UnityStorDriver(driver.StorageDriver):
         'responseTime': 'sp.*.physical.disk.*.responseTime'
     }
     ETHERNET_PORT_METRICS = {
-        'readThroughput': 'sp.*.net.device.*.bytesInRate',
-        'writeThroughput': 'sp.*.net.device.*.bytesOutRate',
-        'readIops': 'sp.*.net.device.*.pktsInRate',
-        'writeIops': 'sp.*.net.device.*.pktsOutRate',
+        'readThroughput': 'sp.*.net.device.*.bytesOutRate',
+        'writeThroughput': 'sp.*.net.device.*.bytesInRate',
+        'readIops': 'sp.*.net.device.*.pktsOutRate',
+        'writeIops': 'sp.*.net.device.*.pktsInRate',
     }
     FC_PORT_METRICS = {
         'readIops': 'sp.*.fibreChannel.fePort.*.readsRate',
